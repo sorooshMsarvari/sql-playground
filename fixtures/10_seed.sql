@@ -20,7 +20,8 @@ VALUES
     (14, 'Nomad Labs',      NULL,                     NULL,          NULL, 'smb',        NULL, '2024-08-08', '{"channel":"unknown"}');
 
 INSERT INTO categories (category_id, category_name) VALUES
-    (1, 'Electronics'), (2, 'Office'), (3, 'Stationery'), (4, 'Accessories');
+    (1, 'Electronics'), (2, 'Office'), (3, 'Stationery'), (4, 'Accessories'),
+    (5, 'Wellness');
 
 INSERT INTO products
     (product_id, sku, product_name, category_id, unit_price, discontinued, attributes, created_at)
@@ -40,7 +41,8 @@ VALUES
     (13, 'OFF-DESK',   'Standing Desk',               2, 699.00, false, '{"color":"oak","electric":true}', '2023-01-20'),
     (14, 'ELE-TRAVEL', 'Travel Adapter',              1,  39.00, false, '{"color":"white","ports":4}', '2023-03-12'),
     (15, 'ELE-DOCK',   'Legacy Dock',                 1, 159.00, true,  '{"color":"black","warranty_years":1}', '2021-06-01'),
-    (16, 'ACC-BOTTLE', 'Insulated Water Bottle',      4,  29.00, false, '{"color":"green","capacity_ml":750}', '2024-02-14');
+    (16, 'ACC-BOTTLE', 'Insulated Water Bottle',      4,  29.00, false, '{"color":"green","capacity_ml":750}', '2024-02-14'),
+    (17, 'OFF-MAT',    'Desk Mat',                    2,  35.00, false, '{"color":"gray","material":"felt"}', '2024-05-01');
 
 INSERT INTO employees
     (employee_id, first_name, last_name, manager_id, department, hire_date, salary)
@@ -160,4 +162,3 @@ SELECT setval(pg_get_serial_sequence('employees','employee_id'), (SELECT max(emp
 SELECT setval(pg_get_serial_sequence('orders','order_id'), (SELECT max(order_id) FROM orders));
 SELECT setval(pg_get_serial_sequence('payments','payment_id'), (SELECT max(payment_id) FROM payments));
 SELECT setval(pg_get_serial_sequence('warehouses','warehouse_id'), (SELECT max(warehouse_id) FROM warehouses));
-

@@ -1,0 +1,1 @@
+Compare each active product price with MAX(active peer price) for the correlated category; equality retains ties.

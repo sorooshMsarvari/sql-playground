@@ -1,0 +1,1 @@
+CASE is evaluated top-down, so test < 50, then < 150, then use ELSE.

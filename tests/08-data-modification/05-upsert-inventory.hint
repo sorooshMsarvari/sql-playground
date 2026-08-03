@@ -1,0 +1,1 @@
+Target the composite key in ON CONFLICT and add excluded.units_in_stock to the existing table value.

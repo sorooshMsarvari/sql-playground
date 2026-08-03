@@ -103,6 +103,48 @@ Write two `UPDATE` statements:
 
 Do not replace stock with hard-coded final values. After the statements, Berlin must contain 9, Paris must contain 31, and their combined stock must remain 40. The checker's surrounding transaction makes the pair atomic for practice and rolls it back afterward.
 
+### 4. Insert a catalog product with a category lookup
+
+Answer file: [`exercises/04-insert-product.sql`](exercises/04-insert-product.sql)
+
+Insert `Ergonomic Footrest` with SKU `OFF-FOOT`, price 69.00, active status, creation date `2025-03-15`, and attributes `{"color":"black","adjustable":true}`. Resolve the `Office` category ID with a subquery and omit the generated product ID.
+
+### 5. Upsert existing inventory
+
+Answer file: [`exercises/05-upsert-inventory.sql`](exercises/05-upsert-inventory.sql)
+
+Attempt to insert 5 units of product 1 at warehouse 1 with reorder level 15 and stocking date `2025-03-20`. On the composite-key conflict, add the proposed five units to existing stock and update `last_stocked_at`; preserve the existing reorder level. The result must be one row with 50 units.
+
+### 6. Complete a processing shipment
+
+Answer file: [`exercises/06-complete-shipment.sql`](exercises/06-complete-shipment.sql)
+
+In one `UPDATE`, change order 1022 from `processing` to `completed` and set `shipped_at` to three days after its own `order_date`. Restrict by both order ID and current status. Do not hard-code the resulting shipping date.
+
+### 7. Delete old failed payments
+
+Answer file: [`exercises/07-delete-failed-payments.sql`](exercises/07-delete-failed-payments.sql)
+
+Delete payment rows whose status is `failed` and whose `paid_at` is before `2025-01-01`. Do not delete orders. The fixture contains exactly one qualifying payment; the checker verifies the count and parent-order survival.
+
+### 8. Repair Nomad Labs contact data
+
+Answer file: [`exercises/08-repair-customer-contact.sql`](exercises/08-repair-customer-contact.sql)
+
+For customer 14 only, set email to `contact@nomad.example` and country to `SE`. Do not change company name, segment, or other customers. Use the primary key as the update predicate.
+
+### 9. Insert an order and item with a data-changing CTE
+
+Answer file: [`exercises/09-create-order-with-item.sql`](exercises/09-create-order-with-item.sql)
+
+Insert an order for customer 13, rep 4, date `2025-03-12`, status `pending`, country `CH`, no shipping date, and notes `Starter order`. Capture its generated ID with `RETURNING` in a CTE, then insert product 16, quantity 2, price 29.00, discount 0 into `order_items`. Do not hard-code an order ID.
+
+### 10. Raise low Dublin reorder levels
+
+Answer file: [`exercises/10-raise-dublin-reorder-levels.sql`](exercises/10-raise-dublin-reorder-levels.sql)
+
+Use `UPDATE ... FROM warehouses` to add 2 to `reorder_level` for inventory in `Dublin Hub` only when current stock is strictly below the current threshold. Do not change stock quantities or rows already at/above threshold. Four seeded rows qualify.
+
 ## Running the checks
 
 ```bash
@@ -110,4 +152,3 @@ Do not replace stock with hard-coded final values. After the statements, Berlin 
 ```
 
 A passing state exercise prints each invariant that was verified and explicitly states that changes were rolled back.
-

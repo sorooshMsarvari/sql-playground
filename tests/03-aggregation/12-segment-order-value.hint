@@ -1,0 +1,1 @@
+Aggregate item rows to one completed order first; only then average those order totals by customer segment.

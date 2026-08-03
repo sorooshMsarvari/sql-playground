@@ -1,0 +1,1 @@
+Anchor customer 1, then join each child.referred_by to the parent customer already in the recursive CTE.

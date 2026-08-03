@@ -12,6 +12,8 @@ Each editable `.sql` file must emit exactly one final result set with the reques
 
 This makes duplicate rows, `NULL`, exact money formatting, column order, and row order observable. Command tags are quieted. A mismatch prints a bounded unified diff with `-` for expected rows and `+` for learner rows.
 
+The learner and reference queries run in separate read-only transactions within one PostgreSQL client session, reducing container startup overhead. An untouched `WHERE false` starter can never pass, even if a future exercise intentionally expects an empty result.
+
 ## State exercises
 
 When `tests/<section>/<exercise>.test.sql` exists, the checker uses state mode. It begins a transaction, executes the learner statements, runs the assertions, and rolls back. PostgreSQL constraint errors and `training.assert_true` messages become feedback.
@@ -22,7 +24,7 @@ An answer must not issue `COMMIT` or `ROLLBACK`; the harness owns the transactio
 
 `./scripts/check-section.sh 06` runs every exercise from sections 01 through 06. This deliberate repetition catches regressions while later tasks build on earlier concepts. `--only` narrows it to section 06.
 
-`./scripts/check-all.sh --solutions` is a repository self-test. `./scripts/verify-playground.sh` additionally checks shell syntax and resets fixtures before running all reference files.
+`./scripts/check-all.sh --solutions` is a repository self-test. `./scripts/verify-playground.sh` additionally checks shell syntax, verifies all 100 exercise/solution/hint/documentation mappings, resets fixtures, rejects unexpectedly empty reference results, and runs all reference files.
 
 ## Feedback and exit codes
 

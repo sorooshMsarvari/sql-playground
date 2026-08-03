@@ -1,0 +1,1 @@
+Use one CTE for per-customer completed counts, another for labels, then group those labels.

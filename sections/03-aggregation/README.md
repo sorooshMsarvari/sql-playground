@@ -46,6 +46,18 @@ One row represents one product line on one order.
 
 Revenue for an item row is `quantity * unit_price * (1 - discount)`. `COUNT(*)` counts rows; it does not count the units stored inside `quantity`.
 
+### Additional grouping dimensions
+
+| Table | Important columns | Relationship and grain |
+|---|---|---|
+| `categories` | `category_id` PK, unique `category_name` | One row per product category |
+| `products` | `product_id` PK, `category_id` FK, `unit_price`, `discontinued` | Many products belong to one category |
+| `employees` | `employee_id` PK, names, `department` | One row per employee; orders reference their sales representative |
+| `warehouses` | `warehouse_id` PK, unique `warehouse_name` | One row per stock location |
+| `inventory` | composite PK `(warehouse_id, product_id)`, `units_in_stock`, `reorder_level` | One product-stock row per warehouse |
+
+Inventory quantities and reorder levels are nonnegative integers. A location is below threshold only when `units_in_stock < reorder_level`; equality is not below.
+
 ## Exercises
 
 ### 1. Customers per country
@@ -99,6 +111,60 @@ Return:
 Join customers → orders → order items. Group by the customer identity and name. Use `WHERE` to remove non-completed input rows and `HAVING` to remove customer groups at or below the threshold. A customer whose revenue is exactly 1500 must not be returned.
 
 Sort by `completed_revenue` descending, then `customer_id` ascending.
+
+### 4. 2024 order-status summary
+
+Answer file: [`exercises/04-order-status-summary.sql`](exercises/04-order-status-summary.sql)
+
+For orders placed in 2024, return one row per `status` with `order_count` and `gross_revenue`. Count distinct orders and calculate discounted item revenue even for non-completed statuses; this is a workload summary, not recognized revenue. Round revenue to two decimals and sort by `status`.
+
+### 5. Active-product price statistics by category
+
+Answer file: [`exercises/05-category-price-statistics.sql`](exercises/05-category-price-statistics.sql)
+
+Return every `category_name` with `active_products`, `min_price`, `max_price`, and `average_price` for active products only. Round the average to two decimals. Preserve a category even if it has no active products; its count is zero and price aggregates are `NULL`. Sort by category name.
+
+### 6. Completed performance for every sales employee
+
+Answer file: [`exercises/06-sales-rep-performance.sql`](exercises/06-sales-rep-performance.sql)
+
+Return every employee in the `Sales` department, including managers with no assigned completed order. Output `employee_id`, concatenated `sales_rep`, distinct `completed_orders`, and discounted `completed_revenue` rounded to two decimals. Zero-fill missing metrics. Sort by revenue descending, then employee ID.
+
+### 7. Monthly order-status counts
+
+Answer file: [`exercises/07-monthly-order-status.sql`](exercises/07-monthly-order-status.sql)
+
+For each month represented by an order in 2024, return `month_start` as a date, `total_orders`, `completed_orders`, and `cancelled_orders`. Use aggregate `FILTER` for the status counts and sort chronologically. This question does not require empty months.
+
+### 8. Per-customer status counts
+
+Answer file: [`exercises/08-customer-status-counts.sql`](exercises/08-customer-status-counts.sql)
+
+Return every customer with `customer_id`, `company_name`, `total_orders`, `completed_orders`, and `open_orders`, where open means `pending` or `processing`. Customers without orders must receive zero counts. With a left join, count `o.order_id`, not `COUNT(*)`. Sort by customer ID.
+
+### 9. Product inventory totals
+
+Answer file: [`exercises/09-product-inventory-totals.sql`](exercises/09-product-inventory-totals.sql)
+
+For every product return `product_id`, `product_name`, total `units_in_stock` as `total_stock`, number of inventory rows as `stocked_warehouses`, and count of locations where stock is strictly below reorder level as `below_reorder_locations`. Zero-fill products absent from inventory. Sort by total stock descending, then product ID.
+
+### 10. Warehouse reorder summary
+
+Answer file: [`exercises/10-warehouse-reorder-summary.sql`](exercises/10-warehouse-reorder-summary.sql)
+
+For warehouses with at least one inventory row strictly below its reorder level, return `warehouse_id`, `warehouse_name`, `low_skus`, and `units_short`. `units_short` is the sum of `GREATEST(reorder_level - units_in_stock, 0)` across the warehouse. Use `HAVING` and sort by shortage descending, then warehouse ID.
+
+### 11. Completed sales by category
+
+Answer file: [`exercises/11-category-completed-sales.sql`](exercises/11-category-completed-sales.sql)
+
+Return every category with `category_id`, `category_name`, `completed_units`, and discounted `completed_revenue`. Preserve zero-sale categories with left joins and zero-fill both metrics. Round revenue to two decimals. Sort by revenue descending, then category ID.
+
+### 12. Average completed-order value by segment
+
+Answer file: [`exercises/12-segment-order-value.sql`](exercises/12-segment-order-value.sql)
+
+First aggregate items to one row per completed order. Then group those order totals by customer `segment`. Return `segment`, `completed_orders`, `average_order_value`, and `total_revenue`, with monetary outputs rounded to two decimals. This prevents large orders with many lines from receiving extra weight. Sort by segment.
 
 ## Running the checks
 

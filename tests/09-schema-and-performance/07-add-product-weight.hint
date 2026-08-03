@@ -1,0 +1,1 @@
+ALTER TABLE products ADD COLUMN with nullable integer type and a CHECK requiring values greater than zero.

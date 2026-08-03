@@ -1,0 +1,1 @@
+Start from all Sales employees and put completed status in the LEFT JOIN condition; count distinct orders.

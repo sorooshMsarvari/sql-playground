@@ -1,0 +1,1 @@
+Update both columns in one statement and derive shipped_at from order_date + 3.

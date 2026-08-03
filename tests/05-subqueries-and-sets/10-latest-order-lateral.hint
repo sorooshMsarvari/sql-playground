@@ -1,0 +1,1 @@
+Use LEFT JOIN LATERAL, correlate the customer inside, order newest first, LIMIT 1, and join ON true.

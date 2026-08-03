@@ -14,4 +14,4 @@ for fixture in \
     psql_base < "$fixture" >/dev/null
 done
 
-success "Fixtures restored: 14 customers, 16 products, 24 orders, and 50 order items."
+success "Fixtures restored: 14 customers, 17 products, 24 orders, and 50 order items."

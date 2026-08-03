@@ -112,9 +112,38 @@ Create `shop.completed_order_totals` as a normal view with exactly one row per c
 
 Join orders to order items, filter to `status = 'completed'`, and group at the order grain. Do not put `ORDER BY` in the view; consumers decide display order. The checker compares every view row and value in both directions against an independently calculated expected set.
 
+### 4. Partial index for open orders
+
+Answer file: [`exercises/04-open-orders-partial-index.sql`](exercises/04-open-orders-partial-index.sql)
+
+Create `idx_orders_open_date` on `shop.orders` with key columns `order_date`, then `customer_id`. Include only rows whose status is `pending` or `processing` using a partial-index `WHERE` predicate. The checker inspects name, key order, and both predicate values.
+
+### 5. Case-insensitive customer-email index
+
+Answer file: [`exercises/05-customer-email-expression-index.sql`](exercises/05-customer-email-expression-index.sql)
+
+Create `idx_customers_lower_email` on the expression `lower(email)` in `shop.customers`, with a partial predicate excluding `NULL` emails. This supports lookups that normalize the query value in the same way.
+
+### 6. Materialized category sales snapshot
+
+Answer file: [`exercises/06-category-sales-materialized-view.sql`](exercises/06-category-sales-materialized-view.sql)
+
+Create `shop.category_sales_snapshot` as a materialized view with every category and columns `category_id`, `category_name`, `completed_units`, and `completed_revenue`. Preserve zero-sale categories, count completed units, calculate discounted revenue, zero-fill, and round revenue to two decimals. Do not order the stored definition.
+
+### 7. Add constrained product weight
+
+Answer file: [`exercises/07-add-product-weight.sql`](exercises/07-add-product-weight.sql)
+
+Alter `shop.products` to add nullable integer `weight_grams` with a check requiring any present value to be greater than zero. Do not add a default or `NOT NULL`. The checker writes a positive value and verifies a negative update is rejected.
+
+### 8. Design customer tags
+
+Answer file: [`exercises/08-customer-tags-schema.sql`](exercises/08-customer-tags-schema.sql)
+
+Create `shop.tags` with generated integer `tag_id` primary key and unique non-`NULL` `tag_name`. Then create junction table `shop.customer_tags` with non-`NULL` cascading foreign keys to customers and tags, `assigned_at date NOT NULL DEFAULT current_date`, and composite primary key `(customer_id, tag_id)`. The checker inserts and relates a tag and inspects both cascades.
+
 ## Running the checks
 
 ```bash
 ./scripts/check-section.sh 09 --only
 ```
-

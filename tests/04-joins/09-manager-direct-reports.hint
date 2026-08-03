@@ -1,0 +1,1 @@
+Alias employees as manager and report, then join report.manager_id to manager.employee_id.

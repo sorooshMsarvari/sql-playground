@@ -23,7 +23,7 @@ psql:
 
 check:
 	@test -n "$(SECTION)" || (echo "Usage: make check SECTION=03"; exit 2)
-	./scripts/check-section.sh "$(SECTION)"
+	./scripts/check-section.sh "$(SECTION)" --only
 
 check-all:
 	./scripts/check-all.sh

@@ -1,0 +1,1 @@
+Set only email and country for customer_id 14; a narrow key predicate prevents collateral updates.

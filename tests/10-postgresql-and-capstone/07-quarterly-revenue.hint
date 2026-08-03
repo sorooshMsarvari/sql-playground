@@ -1,0 +1,1 @@
+Group 2024 completed orders by date_trunc('quarter', order_date)::date and count distinct orders.

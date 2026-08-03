@@ -1,0 +1,1 @@
+Group active products by category and put ORDER BY inside jsonb_agg so each JSON array is deterministic.

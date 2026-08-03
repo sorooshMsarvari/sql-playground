@@ -1,0 +1,1 @@
+Put succeeded status inside the LEFT JOIN and keep rows where the joined payment primary key is NULL.

@@ -1,0 +1,1 @@
+Compute total product stock in a CTE before filtering low locations; otherwise the window sees only shortages.

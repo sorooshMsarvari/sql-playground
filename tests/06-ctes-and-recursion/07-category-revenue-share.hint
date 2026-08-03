@@ -1,0 +1,1 @@
+Aggregate completed revenue by category, sum that CTE once for the denominator, then CROSS JOIN the one-row total.

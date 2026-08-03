@@ -41,6 +41,16 @@ One row represents one employee. `manager_id` points back into the same table, c
 
 Employee 1 is the root used by the exercise. Managers have multiple direct reports, and the deepest employees are two reporting edges below employee 1.
 
+### Catalog and inventory inputs
+
+| Table | Important columns | Relationship and grain |
+|---|---|---|
+| `categories` | `category_id` PK, `category_name` | One category per row |
+| `products` | `product_id` PK, `category_id` FK, `product_name`, `discontinued` | One product per row |
+| `inventory` | `(warehouse_id, product_id)` PK, `units_in_stock`, `reorder_level` | One product at one warehouse |
+
+The stock-risk exercise aggregates inventory across locations before classifying a product. The category-share exercise joins categories through products and items to completed orders.
+
 ## Exercises
 
 ### 1. Customer lifetime summary with named stages
@@ -107,10 +117,39 @@ Use `generate_series` to create month starts from `2024-01-01` to `2024-12-01` a
 
 Put order-status and date-range predicates in the join condition so an empty generated month is not removed by `WHERE`. Sort by `month_start` ascending.
 
+### 4. Product stock risk in staged CTEs
+
+Answer file: [`exercises/04-product-stock-risk.sql`](exercises/04-product-stock-risk.sql)
+
+For every active product, first aggregate all inventory rows into `total_stock` and `total_reorder_level`, zero-filling products absent from inventory. In a second CTE classify the row as `at risk` when total stock is below total reorder level, otherwise `sufficient`. Return `product_id`, `product_name`, both totals, and `stock_state`. Sort by state, then product ID.
+
+### 5. Recursive customer referral tree
+
+Answer file: [`exercises/05-referral-tree.sql`](exercises/05-referral-tree.sql)
+
+Starting at customer 1, recursively follow rows whose `referred_by` points to a customer already found. Return `customer_id`, `company_name`, `depth` (root 0), and `referral_path` with company names joined by ` > `. Use `UNION ALL` and sort by complete path.
+
+### 6. Daily January calendar
+
+Answer file: [`exercises/06-january-daily-orders.sql`](exercises/06-january-daily-orders.sql)
+
+Generate all 31 dates from `2024-01-01` through `2024-01-31`. Return `calendar_date`, `total_orders`, and `completed_orders`, including zeroes on dates with no orders. Left join orders by exact date, count `o.order_id`, use `FILTER` for completed count, and sort chronologically.
+
+### 7. Completed revenue share by category
+
+Answer file: [`exercises/07-category-revenue-share.sql`](exercises/07-category-revenue-share.sql)
+
+Build a `category_revenue` CTE from completed discounted sales and a one-row `grand_total` CTE. Return `category_name`, revenue rounded as `category_revenue`, and `revenue_percent = 100 * category revenue / grand total`, rounded to two decimals. Sort by category revenue descending, then name.
+
+### 8. Customer completed-order activity buckets
+
+Answer file: [`exercises/08-customer-activity-buckets.sql`](exercises/08-customer-activity-buckets.sql)
+
+Count completed orders for every customer, classify the customer as `none`, `one`, or `repeat` (two or more), then count customers in each class. Return `activity_bucket` and `customer_count`. Display buckets in semantic order: none, one, repeat.
+
 ## Running the checks
 
 ```bash
 ./scripts/check-section.sh 06
 ./scripts/check-section.sh 06 --only
 ```
-

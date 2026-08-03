@@ -1,0 +1,1 @@
+Create the lookup table first, then a junction table with two cascading FKs and a composite primary key.

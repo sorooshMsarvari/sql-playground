@@ -1,0 +1,1 @@
+Filter 2024 first, group by status, count distinct orders, and sum discounted item revenue.

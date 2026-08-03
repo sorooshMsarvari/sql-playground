@@ -1,0 +1,1 @@
+Convert the date to text with to_char before COALESCE can substitute the text label.

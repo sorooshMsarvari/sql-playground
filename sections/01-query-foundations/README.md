@@ -109,6 +109,48 @@ Requirements:
 - Sort by `order_date` newest first, then by `order_id` highest first.
 - Return only five rows.
 
+### 4. Active product name and price search
+
+Answer file: [`exercises/04-name-and-price-search.sql`](exercises/04-name-and-price-search.sql)
+
+Find active products whose name contains the letter `a`, case-insensitively, and whose current price is between 20 and 150 inclusive. Return `product_id`, `product_name`, and `unit_price`. Use `ILIKE`, preserve both price endpoints, and sort by `product_name` then `product_id` ascending.
+
+### 5. Open orders since July 2024
+
+Answer file: [`exercises/05-open-orders.sql`](exercises/05-open-orders.sql)
+
+List orders placed on or after `2024-07-01` whose status is either `pending` or `processing`. Return `order_id`, `order_date`, `status`, and `shipping_country`. Sort by `order_date` and then `order_id`, both ascending. Cancelled, refunded, and completed orders must not appear.
+
+### 6. Countries receiving completed orders
+
+Answer file: [`exercises/06-shipping-countries.sql`](exercises/06-shipping-countries.sql)
+
+Return the unique shipping-country codes used by completed orders. The single output column must be named `country`. Use `DISTINCT`, not grouping, and sort alphabetically by `country`.
+
+### 7. Second page of active products
+
+Answer file: [`exercises/07-second-product-page.sql`](exercises/07-second-product-page.sql)
+
+Paginate active products in stable `product_id` order with a page size of five. Return the second page—that is, skip the first five matching rows and return the next five. Output `product_id`, `sku`, and `product_name`. Filtering must happen before the ordered `LIMIT`/`OFFSET` page is selected.
+
+### 8. Enterprise and recent midmarket customers
+
+Answer file: [`exercises/08-priority-customer-filter.sql`](exercises/08-priority-customer-filter.sql)
+
+Return every enterprise customer, regardless of acquisition date, plus midmarket customers created on or after `2023-01-01`. Output `customer_id`, `company_name`, `segment`, and `created_at`. Parenthesize the midmarket/date branch to make the boolean logic unambiguous. Sort by `segment`, then `customer_id`.
+
+### 9. Non-negative spring orders
+
+Answer file: [`exercises/09-spring-orders.sql`](exercises/09-spring-orders.sql)
+
+Find orders from `2024-03-01` through `2024-05-31`, including both boundary dates, whose status is neither `cancelled` nor `refunded`. Return `order_id`, `order_date`, and `status`, sorted by `order_date` then `order_id`.
+
+### 10. Recently introduced active catalog items
+
+Answer file: [`exercises/10-recent-catalog.sql`](exercises/10-recent-catalog.sql)
+
+Find active products created on or after `2023-01-01`. Return `product_id` as `catalog_id`, `product_name` as `name`, and `unit_price` as `price`. Sort by the underlying `created_at` newest first and use `product_id` ascending as the tie-breaker. The checker validates the aliases.
+
 ## Running the checks
 
 Check one answer:
@@ -124,4 +166,3 @@ Check the complete section:
 ```
 
 The checker validates column names, column order, row values, duplicate rows, result order, and row count.
-

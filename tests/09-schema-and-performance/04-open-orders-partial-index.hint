@@ -1,0 +1,1 @@
+Create the two-key index and place the IN predicate after WHERE so only pending/processing rows are indexed.

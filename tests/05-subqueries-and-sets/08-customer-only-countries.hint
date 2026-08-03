@@ -1,0 +1,1 @@
+Select non-NULL customer countries, EXCEPT the warehouse-country set, then order the combined result.

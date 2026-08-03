@@ -1,0 +1,1 @@
+LAST_VALUE needs an explicit frame ending at UNBOUNDED FOLLOWING; its default frame ends at the current row.

@@ -1,0 +1,1 @@
+Aggregate completed orders first, then divide each revenue by SUM(revenue) OVER ().

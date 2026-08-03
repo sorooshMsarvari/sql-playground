@@ -1,0 +1,1 @@
+LEFT JOIN only active products in the ON clause so categories survive; avg/min/max then ignore NULL matches.

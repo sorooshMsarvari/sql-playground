@@ -1,0 +1,1 @@
+Use UPDATE inventory ... FROM warehouses and restrict both the named warehouse and low-stock condition.

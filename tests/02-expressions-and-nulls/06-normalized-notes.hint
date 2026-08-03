@@ -1,0 +1,1 @@
+Use btrim first, NULLIF the empty string, then COALESCE the resulting NULL to 'none'.

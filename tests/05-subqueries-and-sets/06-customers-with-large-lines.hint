@@ -1,0 +1,1 @@
+Inside EXISTS, join each customer's orders to items and test quantity >= 5; no outer DISTINCT is needed.

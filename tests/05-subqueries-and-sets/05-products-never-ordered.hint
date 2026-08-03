@@ -1,0 +1,1 @@
+Correlate NOT EXISTS directly from order_items.product_id to the current product.

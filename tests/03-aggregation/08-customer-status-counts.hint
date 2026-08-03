@@ -1,0 +1,1 @@
+LEFT JOIN orders and count o.order_id, not *, so customers with no orders receive zero.

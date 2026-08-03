@@ -1,6 +1,6 @@
 # SQL Exercise Playground
 
-A hands-on PostgreSQL curriculum that grows from the first `SELECT` to recursive CTEs, window functions, data modification, schema design, indexes, JSONB, and a reporting capstone. It contains 10 mentally related sections and 31 incrementally checked exercises.
+A hands-on PostgreSQL curriculum that grows from the first `SELECT` to recursive CTEs, window functions, data modification, schema design, indexes, JSONB, and a reporting capstone. It contains 10 mentally related sections and 100 incrementally checked exercises.
 
 Everything runs in Docker. You do not need PostgreSQL, `psql`, or a language runtime installed on the host.
 
@@ -35,6 +35,22 @@ That command checks sections 01, 02, and 03. Use `--only` when you want only the
 ```bash
 ./scripts/check-section.sh 03 --only
 ```
+
+## Exercise distribution
+
+| Section | Exercises |
+|---|---:|
+| 01 — Query foundations | 10 |
+| 02 — Expressions and NULLs | 10 |
+| 03 — Aggregation | 12 |
+| 04 — Joins | 12 |
+| 05 — Subqueries and sets | 10 |
+| 06 — CTEs and recursion | 8 |
+| 07 — Window functions | 12 |
+| 08 — Data modification | 10 |
+| 09 — Schema and performance | 8 |
+| 10 — PostgreSQL and capstone | 8 |
+| **Total** | **100** |
 
 ## Daily practice loop
 
@@ -89,7 +105,7 @@ If ports 5432 or 8080 are occupied, copy `.env.example` to `.env` and change the
 | `make check SECTION=04` | Check sections 01 through 04 |
 | `make check-all` | Check all of your starter/answer files |
 | `make reset` | Recreate the schemas and deterministic seed data |
-| `make verify` | Reset and test all 31 supplied reference solutions |
+| `make verify` | Reset and test all 100 supplied reference solutions |
 | `make logs` | Follow PostgreSQL logs |
 | `make stop` | Stop containers without deleting the database volume |
 

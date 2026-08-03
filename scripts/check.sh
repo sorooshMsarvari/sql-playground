@@ -58,7 +58,6 @@ trap 'rm -rf "$tmp_dir"' EXIT
 actual_out="$tmp_dir/actual.csv"
 expected_out="$tmp_dir/expected.csv"
 actual_err="$tmp_dir/actual.err"
-expected_err="$tmp_dir/expected.err"
 
 printf '%s▶%s %s / %s\n' "$C_BOLD" "$C_RESET" "$section_name" "$exercise_id"
 
@@ -86,31 +85,57 @@ else
         exit 2
     fi
 
+    combined_out="$tmp_dir/combined.csv"
+    boundary='__SQL_PLAYGROUND_REFERENCE_BOUNDARY_9f4a2c__'
     {
         printf '\\set ON_ERROR_STOP on\nBEGIN;\nSET TRANSACTION READ ONLY;\nSET search_path TO shop, public;\n'
         sed '/^[[:space:]]*\\echo /d' "$answer_file"
+        printf '\nROLLBACK;\n\\echo %s\n' "$boundary"
+        printf 'BEGIN;\nSET TRANSACTION READ ONLY;\nSET search_path TO shop, public;\n'
+        sed '/^[[:space:]]*\\echo /d' "$solution_file"
         printf '\nROLLBACK;\n'
-    } | psql_base --csv >"$actual_out" 2>"$actual_err"
+    } | psql_base --csv >"$combined_out" 2>"$actual_err"
     status=$?
 
+    boundary_seen=0
+    if grep -Fxq "$boundary" "$combined_out"; then
+        boundary_seen=1
+        awk -v marker="$boundary" -v actual="$actual_out" -v expected="$expected_out" '
+            $0 == marker { in_expected = 1; next }
+            in_expected { print > expected; next }
+            { print > actual }
+        ' "$combined_out"
+    fi
+
     if [[ $status -ne 0 ]]; then
-        :
-    else
-        {
-            printf '\\set ON_ERROR_STOP on\nBEGIN;\nSET TRANSACTION READ ONLY;\nSET search_path TO shop, public;\n'
-            sed '/^[[:space:]]*\\echo /d' "$solution_file"
-            printf '\nROLLBACK;\n'
-        } | psql_base --csv >"$expected_out" 2>"$expected_err"
-        expected_status=$?
-        if [[ $expected_status -ne 0 ]]; then
+        if [[ $boundary_seen -eq 1 ]]; then
             failure "The repository's reference query failed. This is a playground bug."
-            indent_file "$expected_err" >&2
+            indent_file "$actual_err" >&2
             exit 2
         fi
-
+    elif [[ $boundary_seen -ne 1 ]]; then
+        failure "The checker could not separate the learner and reference results."
+        exit 2
+    else
         if cmp -s "$actual_out" "$expected_out"; then
+            if [[ "$relative" == sections/*/exercises/*.sql ]] \
+                && grep -Eiq 'where[[:space:]]+false' "$answer_file"; then
+                failure "$exercise_id still contains the untouched WHERE false starter."
+                if [[ -f "$hint_file" ]]; then
+                    printf '%sHint:%s ' "$C_CYAN" "$C_RESET" >&2
+                    cat "$hint_file" >&2
+                    printf '\n' >&2
+                fi
+                exit 1
+            fi
             output_lines=$(wc -l < "$actual_out" | tr -d ' ')
             row_count=$((output_lines - 1))
+            if [[ "$relative" == solutions/*/*.sql ]] \
+                && [[ "${PLAYGROUND_REQUIRE_REFERENCE_ROWS:-0}" == 1 ]] \
+                && [[ $row_count -eq 0 ]]; then
+                failure "$exercise_id has an empty reference result; fixture coverage is incomplete."
+                exit 2
+            fi
             success "$exercise_id passed ($row_count result rows)."
             exit 0
         fi

@@ -1,0 +1,1 @@
+Rank each customer's orders newest-first with ROW_NUMBER, then keep rn = 1 in the outer query.

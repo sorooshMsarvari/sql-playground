@@ -63,6 +63,17 @@ customers (1) ──< orders (1) ──< order_items
 | `order_items` | `unit_price` | `numeric(10,2)` | No | Historical unit price |
 | `order_items` | `discount` | `numeric(4,3)` | No | Fractional discount |
 
+### Payments and inventory
+
+| Table | Important columns | Relationship and grain |
+|---|---|---|
+| `categories` | `category_id` PK, `category_name` | Product grouping dimension |
+| `payments` | `payment_id` PK, `order_id` FK, `amount`, `method`, `status` | One payment event; an order can have several |
+| `warehouses` | `warehouse_id` PK, `warehouse_name` | One location per row |
+| `inventory` | `(warehouse_id, product_id)` PK, `units_in_stock`, `reorder_level` | One product/location pair |
+
+The inventory capstone joins `inventory.product_id` to products and `inventory.warehouse_id` to warehouses. Its total-stock window must run before low-stock locations are filtered.
+
 ## Exercises
 
 ### 1. High-priority partner customers
@@ -141,6 +152,38 @@ Important semantics:
 - Keep only `revenue_rank <= 2`.
 - Sort by `segment`, `revenue_rank`, and `customer_id`, all ascending.
 
+### 4. Active products as ordered JSON arrays
+
+Answer file: [`exercises/04-category-products-json.sql`](exercises/04-category-products-json.sql)
+
+Return one row per category that has active products, with `category_name` and `products`. Build `products` using `jsonb_agg` of objects containing keys `product_id`, `name`, and `price`. Order objects inside each aggregate by product name then ID so JSON arrays are deterministic. Sort category rows by name.
+
+### 5. Latest order with PostgreSQL `DISTINCT ON`
+
+Answer file: [`exercises/05-latest-order-distinct-on.sql`](exercises/05-latest-order-distinct-on.sql)
+
+For each customer with an order, use `DISTINCT ON (customer_id)` to return `customer_id`, `company_name`, `order_id`, `order_date`, and `status` for the newest order. PostgreSQL requires the leading `ORDER BY` expression to match the distinct key; follow it with date and order ID descending.
+
+### 6. Successful-payment method pivot
+
+Answer file: [`exercises/06-payment-method-pivot.sql`](exercises/06-payment-method-pivot.sql)
+
+For each order having at least one successful payment, return `order_id`, `card_total`, `bank_transfer_total`, and `paypal_total`. Sum only succeeded rows and use aggregate `FILTER` per method. Zero-fill absent methods and round totals to two decimals. Sort by order ID.
+
+### 7. Quarterly completed revenue
+
+Answer file: [`exercises/07-quarterly-revenue.sql`](exercises/07-quarterly-revenue.sql)
+
+For each quarter in 2024 containing a completed order, return `quarter_start` as a date, distinct `completed_orders`, and discounted `revenue` rounded to two decimals. Group with `date_trunc('quarter', order_date)` and sort chronologically.
+
+### 8. Inventory risk capstone
+
+Answer file: [`exercises/08-inventory-risk-capstone.sql`](exercises/08-inventory-risk-capstone.sql)
+
+In a CTE, join inventory, warehouse, active product, and category data; extract product color from JSONB with fallback `unknown`; and compute `product_total_stock` across all warehouses using a window partition. Only in the outer query filter locations below reorder level.
+
+Return `warehouse_name`, `category_name`, `product_name`, `product_color`, `units_in_stock`, `reorder_level`, `units_short`, and `product_total_stock`. Sort by shortage descending, then warehouse and product. Computing the window after filtering would produce an incorrect company-wide total.
+
 ## Running the checks
 
 ```bash
@@ -151,5 +194,4 @@ Important semantics:
 ./scripts/check-section.sh 10
 ```
 
-Passing the cumulative command means all 31 exercises currently satisfy their documented output contracts.
-
+Passing the cumulative command means all 100 exercises currently satisfy their documented output contracts.

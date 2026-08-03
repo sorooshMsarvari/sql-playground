@@ -46,6 +46,20 @@ One row represents one order.
 
 Subtracting one PostgreSQL `date` from another produces an integer number of days. Any arithmetic involving a `NULL` operand produces `NULL`.
 
+### `employees` and `products`
+
+Later questions also derive display values from employees and classify catalog products.
+
+| Table | Column | Type | Null? | Meaning |
+|---|---|---|---:|---|
+| `employees` | `employee_id` | `integer` | No | Primary key |
+| `employees` | `first_name` | `text` | No | Given name |
+| `employees` | `last_name` | `text` | No | Family name |
+| `products` | `product_id` | `integer` | No | Primary key |
+| `products` | `product_name` | `text` | No | Catalog name |
+| `products` | `unit_price` | `numeric(10,2)` | No | Current price |
+| `products` | `discontinued` | `boolean` | No | Active when `false` |
+
 ## Exercises
 
 ### 1. Discounted line totals
@@ -97,6 +111,48 @@ Classify every order placed from `2024-04-01` through `2024-06-30` inclusive.
 
 Use a half-open range ending at `2024-07-01`. Sort by `order_date` ascending and then `order_id` ascending. Let SQL preserve a missing shipping date naturally; do not replace it with zero.
 
+### 4. Employee display identifiers
+
+Answer file: [`exercises/04-employee-identifiers.sql`](exercises/04-employee-identifiers.sql)
+
+For every employee, return `employee_id`, `full_name`, `initials`, and `username`. `full_name` is first and last name separated by one space; `initials` is the uppercase first character of each name; `username` is lowercase `first_name.last_name`. Sort by `employee_id`. Do not hard-code any names.
+
+### 5. Calendar parts of 2024 orders
+
+Answer file: [`exercises/05-order-calendar-parts.sql`](exercises/05-order-calendar-parts.sql)
+
+For every order placed in calendar year 2024, return `order_id` plus `order_year`, `order_month`, and `order_quarter` extracted from `order_date` and cast to `integer`. Sort chronologically by the original `order_date`, then `order_id`.
+
+### 6. Normalize optional order notes
+
+Answer file: [`exercises/06-normalized-notes.sql`](exercises/06-normalized-notes.sql)
+
+Return every `order_id` and a `note_text`. Trim leading and trailing whitespace from `notes`; treat an empty trimmed string as missing; display `none` for a missing value. The intended expression order is `BTRIM` → `NULLIF` → `COALESCE`. Sort by `order_id`.
+
+### 7. Active product price bands
+
+Answer file: [`exercises/07-product-price-bands.sql`](exercises/07-product-price-bands.sql)
+
+Classify every active product as `budget` when `unit_price < 50`, `standard` when price is at least 50 but below 150, and `premium` when price is at least 150. Return `product_id`, `product_name`, and `price_band`. Sort by the underlying `unit_price` ascending, then `product_id`.
+
+### 8. Human-readable discounts
+
+Answer file: [`exercises/08-discount-display.sql`](exercises/08-discount-display.sql)
+
+For item rows with a positive discount, return `order_id`, `product_id`, `discount_percent` (`discount * 100`, rounded to one decimal), and `net_unit_price` (`unit_price * (1 - discount)`, rounded to two decimals). Sort by `order_id`, then `product_id`.
+
+### 9. Shipping display values
+
+Answer file: [`exercises/09-shipping-display.sql`](exercises/09-shipping-display.sql)
+
+For every order, return `order_id`, `shipped_on`, and `shipping_state`. Format a present `shipped_at` as `YYYY-MM-DD`; otherwise use the text `not shipped`. `shipping_state` is `shipped` when a date exists and `waiting` otherwise. Sort by `order_id`. Convert the date to text before using `COALESCE` with a text label.
+
+### 10. Customer email domains
+
+Answer file: [`exercises/10-customer-email-domains.sql`](exercises/10-customer-email-domains.sql)
+
+For customers with an email address, return `customer_id`, `company_name`, and the lowercase text after `@` as `email_domain`. Use `split_part`; exclude `NULL` emails. Sort by `email_domain`, then `customer_id`.
+
 ## Running the checks
 
 ```bash
@@ -106,4 +162,3 @@ Use a half-open range ending at `2024-07-01`. Sort by `order_date` ascending and
 # Check only this section
 ./scripts/check-section.sh 02 --only
 ```
-

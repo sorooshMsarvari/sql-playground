@@ -1,0 +1,1 @@
+CROSS JOIN warehouses with active products, LEFT JOIN inventory on both keys, and retain NULL matches.

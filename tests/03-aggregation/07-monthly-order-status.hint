@@ -1,0 +1,1 @@
+Use date_trunc for the group and aggregate FILTER clauses for the two status-specific counts.

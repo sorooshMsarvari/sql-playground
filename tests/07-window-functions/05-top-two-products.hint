@@ -1,0 +1,1 @@
+Use ROW_NUMBER partitioned by category with price DESC and product_id as the deterministic tie-breaker.

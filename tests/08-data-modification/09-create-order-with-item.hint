@@ -1,0 +1,1 @@
+INSERT the order in a CTE with RETURNING order_id, then SELECT that generated key into the item INSERT.

@@ -1,0 +1,1 @@
+Aggregate customer revenue first, then NTILE(4) over revenue DESC with customer_id for deterministic ties.

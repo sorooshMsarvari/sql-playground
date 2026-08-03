@@ -88,10 +88,63 @@ Use `LAG(order_date)` partitioned by `customer_id` and ordered by `order_date`, 
 
 For the first completed order in each customer partition, both derived columns must remain SQL `NULL`. Sort the final result by `customer_id`, `order_date`, and `order_id` ascending.
 
+### 4. Latest order using `ROW_NUMBER`
+
+Answer file: [`exercises/04-latest-order-row-number.sql`](exercises/04-latest-order-row-number.sql)
+
+Rank all orders newest-first within each customer, using descending order date and order ID. Keep row 1 and join the customer name. Return `customer_id`, `company_name`, `order_id`, `order_date`, and `status` for customers with orders only. Sort by customer ID.
+
+### 5. Two most expensive active products per category
+
+Answer file: [`exercises/05-top-two-products.sql`](exercises/05-top-two-products.sql)
+
+Use `ROW_NUMBER` per category ordered by price descending and product ID ascending. Return rows 1 and 2 as `category_name`, `product_id`, `product_name`, `unit_price`, and `row_number`. Exclude discontinued products and sort by category name and row number.
+
+### 6. Completed-order share of revenue
+
+Answer file: [`exercises/06-order-revenue-percent.sql`](exercises/06-order-revenue-percent.sql)
+
+Aggregate one discounted total per completed order, then return `order_id`, rounded `revenue`, and `revenue_percent` of all completed-order revenue. Use `SUM(revenue) OVER ()` as the denominator and round the percentage to two decimals. Sort by percentage descending, then order ID.
+
+### 7. Three-month moving revenue average
+
+Answer file: [`exercises/07-three-month-moving-average.sql`](exercises/07-three-month-moving-average.sql)
+
+Aggregate completed 2024 revenue by month. Return `month_start`, rounded `monthly_revenue`, and `moving_average_3m` over the current and two preceding monthly rows. Early months average the rows available. Use an explicit `ROWS` frame and sort by month.
+
+### 8. Customer value quartiles
+
+Answer file: [`exercises/08-customer-value-quartiles.sql`](exercises/08-customer-value-quartiles.sql)
+
+For customers with completed orders, aggregate lifetime revenue and assign `NTILE(4)` ordered by revenue descending, then customer ID for deterministic ties. Return `customer_id`, `company_name`, rounded `lifetime_revenue`, and `value_quartile` (1 is highest value). Sort by quartile, revenue descending, and ID.
+
+### 9. Most and least expensive product on every product row
+
+Answer file: [`exercises/09-category-price-extremes.sql`](exercises/09-category-price-extremes.sql)
+
+For every active product return `category_name`, `product_name`, `unit_price`, plus `most_expensive_product` and `least_expensive_product` for its category. Use `FIRST_VALUE` and `LAST_VALUE`; the latter must explicitly span through `UNBOUNDED FOLLOWING`. Resolve price ties with product ID. Sort by category and descending price.
+
+### 10. Running completed units by product
+
+Answer file: [`exercises/10-product-running-units.sql`](exercises/10-product-running-units.sql)
+
+For each item on a completed order, return `product_id`, `order_id`, `order_date`, `quantity`, and cumulative completed `cumulative_units` for that product through the current order. Partition by product, order by date and order ID, use an explicit cumulative `ROWS` frame, and display in the same sequence.
+
+### 11. Days until the next completed order
+
+Answer file: [`exercises/11-next-completed-order.sql`](exercises/11-next-completed-order.sql)
+
+For every completed order return `customer_id`, `order_id`, `order_date`, the next completed date as `next_order_date`, and `days_until_next`. Use `LEAD` per customer. The last row in each partition retains `NULL` derived fields. Sort by customer, date, and order ID.
+
+### 12. Product price percent rank
+
+Answer file: [`exercises/12-category-price-percent-rank.sql`](exercises/12-category-price-percent-rank.sql)
+
+For active products return `category_name`, `product_name`, `unit_price`, and `price_percent_rank`. Compute `PERCENT_RANK` within category ordered by ascending price, multiply by 100, cast to numeric, and round to two decimals. Thus the cheapest is 0 and the most expensive approaches or reaches 100. Sort by category, price, and name.
+
 ## Running the checks
 
 ```bash
 ./scripts/check-section.sh 07
 ./scripts/check-section.sh 07 --only
 ```
-

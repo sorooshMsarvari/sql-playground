@@ -1,0 +1,1 @@
+Use FILTER for low SKU count, GREATEST for nonnegative shortage, and HAVING to retain affected warehouses.

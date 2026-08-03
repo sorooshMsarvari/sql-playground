@@ -1,0 +1,1 @@
+Partition by product and use an explicit cumulative row frame ordered by order date and ID.

@@ -1,0 +1,1 @@
+Filter successful rows, group by order, and use three SUM(amount) FILTER expressions with COALESCE.

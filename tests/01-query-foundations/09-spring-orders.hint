@@ -1,0 +1,1 @@
+BETWEEN is inclusive; exclude the two closed-negative statuses with NOT IN.

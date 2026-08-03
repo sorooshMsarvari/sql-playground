@@ -1,0 +1,1 @@
+DISTINCT ON customer_id requires ORDER BY to start with customer_id, followed by newest date and highest ID.

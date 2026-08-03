@@ -40,7 +40,8 @@ An order can have multiple payment rows, and a payment's status matters. Joining
 ## Edge cases included on purpose
 
 - Customers 13 and 14 have no orders; customer 14 also has missing country, email, and phone.
-- Product 16 has never been ordered; product 15 is discontinued.
+- Products 16 and 17 have never been ordered; product 17 also has no inventory rows. Product 15 is discontinued.
+- Category 5 (`Wellness`) has no products, exercising empty-group and outer-join behavior.
 - Several products are absent from some warehouses.
 - Some inventory is at or below its reorder threshold.
 - Orders include pending, processing, cancelled, refunded, and completed states.
@@ -49,4 +50,3 @@ An order can have multiple payment rows, and a payment's status matters. Joining
 - Employees form a three-level self-referencing management tree.
 
 Use `\d table_name` in `psql` for exact column types and constraints. The source of truth is [fixtures/00_schema.sql](../fixtures/00_schema.sql).
-

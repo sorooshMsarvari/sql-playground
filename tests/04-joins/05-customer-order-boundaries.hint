@@ -1,0 +1,1 @@
+LEFT JOIN from customers, count o.order_id, and use MIN/MAX on order_date so no-order customers remain.
