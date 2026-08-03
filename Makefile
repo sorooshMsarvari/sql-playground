@@ -22,8 +22,12 @@ psql:
 	docker compose exec postgres psql -U sql_student -d sql_playground
 
 check:
-	@test -n "$(SECTION)" || (echo "Usage: make check SECTION=03"; exit 2)
-	./scripts/check-section.sh "$(SECTION)" --only
+	@test -n "$(SECTION)" || (echo "Usage: make check SECTION=03 [EXERCISE=05]"; exit 2)
+	@if [ -n "$(EXERCISE)" ]; then \
+		./scripts/check-section.sh "$(SECTION)" --only --exercise "$(EXERCISE)"; \
+	else \
+		./scripts/check-section.sh "$(SECTION)" --only; \
+	fi
 
 check-all:
 	./scripts/check-all.sh

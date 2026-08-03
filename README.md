@@ -36,6 +36,15 @@ That command checks sections 01, 02, and 03. Use `--only` when you want only the
 ./scripts/check-section.sh 03 --only
 ```
 
+Check one exact exercise by its numbered filename prefix:
+
+```bash
+./scripts/check-section.sh 03 --exercise 05
+make check SECTION=03 EXERCISE=05
+```
+
+Both `5` and `05` are accepted. `--exercise` automatically limits the run to the specified section.
+
 ## Exercise distribution
 
 | Section | Exercises |
@@ -102,7 +111,8 @@ If ports 5432 or 8080 are occupied, copy `.env.example` to `.env` and change the
 | `make start` | Start PostgreSQL and wait for health |
 | `make start-ui` | Start PostgreSQL plus the optional Adminer browser UI |
 | `make psql` | Enter an interactive PostgreSQL shell |
-| `make check SECTION=04` | Check sections 01 through 04 |
+| `make check SECTION=04` | Check every exercise in section 04 |
+| `make check SECTION=04 EXERCISE=05` | Check only exercise 05 in section 04 |
 | `make check-all` | Check all of your starter/answer files |
 | `make reset` | Recreate the schemas and deterministic seed data |
 | `make verify` | Reset and test all 100 supplied reference solutions |

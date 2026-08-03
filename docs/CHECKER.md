@@ -24,6 +24,8 @@ An answer must not issue `COMMIT` or `ROLLBACK`; the harness owns the transactio
 
 `./scripts/check-section.sh 06` runs every exercise from sections 01 through 06. This deliberate repetition catches regressions while later tasks build on earlier concepts. `--only` narrows it to section 06.
 
+`./scripts/check-section.sh 06 --exercise 04` runs only exercise 04 from section 06; the selector accepts `4` or `04` and implies section-only scope. The equivalent Make command is `make check SECTION=06 EXERCISE=04`. Omitting `EXERCISE` from the Make command retains the whole-section default.
+
 `./scripts/check-all.sh --solutions` is a repository self-test. `./scripts/verify-playground.sh` additionally checks shell syntax, verifies all 100 exercise/solution/hint/documentation mappings, resets fixtures, rejects unexpectedly empty reference results, and runs all reference files.
 
 ## Feedback and exit codes
