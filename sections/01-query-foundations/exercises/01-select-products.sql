@@ -5,5 +5,7 @@
 -- TODO: replace this starter query.
 SELECT sku, product_name, unit_price
 FROM products
-WHERE false;
+WHERE discontinued = false
+ORDER BY unit_price DESC, sku ASC
+LIMIT 5;
 

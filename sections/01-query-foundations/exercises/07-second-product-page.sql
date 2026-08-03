@@ -1,5 +1,8 @@
 -- Write the query defined in this section's README.
 SELECT product_id, sku, product_name
 FROM products
-WHERE false;
+WHERE discontinued = false
+ORDER BY product_id
+LIMIT 5
+OFFSET 5;
 
