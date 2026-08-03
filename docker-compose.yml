@@ -1,0 +1,36 @@
+name: sql-playground
+
+services:
+  postgres:
+    image: ${POSTGRES_IMAGE:-postgres:16-alpine}
+    environment:
+      POSTGRES_DB: sql_playground
+      POSTGRES_USER: sql_student
+      POSTGRES_PASSWORD: sql_student
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./fixtures:/docker-entrypoint-initdb.d:ro
+      - ./:/workspace:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sql_student -d sql_playground"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  adminer:
+    image: ${ADMINER_IMAGE:-adminer:4-standalone}
+    profiles: ["ui"]
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+    ports:
+      - "${ADMINER_PORT:-8080}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

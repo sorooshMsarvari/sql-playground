@@ -1,0 +1,1 @@
+Aggregate items to one row per order first. Then aggregate orders per customer and LEFT JOIN the result to all customers.

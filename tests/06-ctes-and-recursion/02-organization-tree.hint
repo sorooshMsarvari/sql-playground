@@ -1,0 +1,1 @@
+The anchor selects employee 1. The recursive branch joins each child.manager_id to the parent row already in the CTE.

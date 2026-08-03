@@ -1,0 +1,2 @@
+Each SET expression should be relative to units_in_stock, one subtracting and one adding the same quantity.
+

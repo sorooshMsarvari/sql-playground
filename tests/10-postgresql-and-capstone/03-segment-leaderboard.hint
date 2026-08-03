@@ -1,0 +1,2 @@
+Use three CTE stages: order_totals, customer_metrics, ranked. Filter window results in the outermost query.
+

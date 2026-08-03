@@ -1,0 +1,2 @@
+A half-open range (>= 2024-01-01 and < 2025-01-01) avoids time-boundary mistakes.
+

@@ -1,0 +1,1 @@
+Do not compare a value with = NULL. Use COALESCE and IS NULL.

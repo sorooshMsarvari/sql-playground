@@ -1,0 +1,2 @@
+Use customers twice with different aliases, and preserve the left-hand customer with LEFT JOIN.
+

@@ -1,0 +1,2 @@
+WHERE filters input rows; HAVING filters the groups produced by GROUP BY.
+

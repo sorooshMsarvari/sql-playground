@@ -1,0 +1,2 @@
+Build one grouped result per order for items and another for payments, then join the two aggregates. Joining all three raw tables causes fan-out.
+

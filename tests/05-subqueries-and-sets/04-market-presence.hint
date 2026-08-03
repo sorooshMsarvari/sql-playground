@@ -1,0 +1,1 @@
+Both SELECT branches need the same two compatible columns. UNION removes repeated customer-country rows; the final ORDER BY belongs after the second branch.

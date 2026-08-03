@@ -1,0 +1,2 @@
+Generate twelve dates first. Put completed-order conditions in the LEFT JOIN, not WHERE, so empty months survive.
+

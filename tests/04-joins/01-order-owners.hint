@@ -1,0 +1,1 @@
+Follow orders.customer_id to customers and orders.sales_rep_id to employees; concatenate the representative's names.

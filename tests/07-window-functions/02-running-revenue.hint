@@ -1,0 +1,1 @@
+After the monthly CTE, SUM(monthly_revenue) OVER (ORDER BY month_start ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW).

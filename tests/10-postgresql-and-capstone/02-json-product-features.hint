@@ -1,0 +1,1 @@
+Use JSONB containment (@>) for wireless=true, then ->> followed by ::integer for the warranty.

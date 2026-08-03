@@ -1,0 +1,1 @@
+The syntax ends with (customer_id, order_date DESC) INCLUDE (status).

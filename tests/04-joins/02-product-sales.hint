@@ -1,0 +1,1 @@
+Start from products and LEFT JOIN outward. A WHERE condition on the right-side order table can accidentally erase zero-sale products; FILTER is useful here.

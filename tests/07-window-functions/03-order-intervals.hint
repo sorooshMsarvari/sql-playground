@@ -1,0 +1,2 @@
+Calculate LAG(order_date) once in a CTE, then subtract it from order_date in the outer query.
+

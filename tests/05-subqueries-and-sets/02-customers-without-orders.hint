@@ -1,0 +1,1 @@
+Inside NOT EXISTS, correlate orders.customer_id to the current customer; SELECT 1 communicates that only existence matters.

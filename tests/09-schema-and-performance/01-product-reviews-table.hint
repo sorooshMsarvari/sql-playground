@@ -1,0 +1,1 @@
+Put integrity in column/table constraints: IDENTITY PRIMARY KEY, REFERENCES ... ON DELETE CASCADE, CHECK, and DEFAULT current_timestamp.

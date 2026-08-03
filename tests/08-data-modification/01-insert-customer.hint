@@ -1,0 +1,1 @@
+List the target columns explicitly and cast the JSON string to jsonb; omit the identity column.
