@@ -7,7 +7,14 @@
 -- Sort by customer_id.
 
 -- TODO
-SELECT customer_id, company_name, email AS contact_email, phone AS phone_status
+SELECT
+  customer_id,
+  company_name,
+  COALESCE(email, 'missing') AS contact_email,
+  CASE
+    WHEN phone IS NOT NULL THEN 'available'
+    ELSE 'missing'
+  END AS phone_status
 FROM customers
-WHERE false;
+ORDER BY customer_id;
 

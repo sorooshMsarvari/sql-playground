@@ -1,5 +1,6 @@
 -- Write the query defined in this section's README.
-SELECT order_id, ''::text AS note_text
+SELECT order_id,
+  coalesce(nullif(btrim(notes), ''), 'none') AS note_text
 FROM orders
-WHERE false;
+ORDER BY order_id;
 

@@ -4,7 +4,10 @@
 -- Round line_total to 2 decimal places. Sort by order_id, product_id.
 
 -- TODO
-SELECT order_id, product_id, quantity, 0::numeric AS line_total
+SELECT  order_id,
+        product_id,
+        quantity,
+        round(quantity * unit_price * (1-discount), 2) AS line_total
 FROM order_items
-WHERE false;
-
+WHERE order_id IN (1001, 1002, 1003, 1004)
+ORDER BY order_id, product_id;

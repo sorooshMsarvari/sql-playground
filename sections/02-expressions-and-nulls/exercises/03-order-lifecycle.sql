@@ -7,7 +7,18 @@
 -- Sort by order_date, then order_id.
 
 -- TODO
-SELECT order_id, order_date, NULL::integer AS fulfillment_days, ''::text AS lifecycle
+SELECT 
+  order_id,
+  order_date,
+  CASE
+    WHEN shipped_at IS NULL THEN NULL
+    ELSE shipped_at - order_date
+  END AS fulfillment_days,
+  CASE
+    WHEN status IN ('completed', 'refunded', 'cancelled') THEN 'closed'
+    ELSE 'open'
+  END AS lifecycle
 FROM orders
-WHERE false;
+WHERE order_date >= DATE '2024-04-01'
+  AND order_date < DATE '2024-07-01';
 

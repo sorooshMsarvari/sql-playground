@@ -1,5 +1,9 @@
 -- Write the query defined in this section's README.
-SELECT customer_id, company_name, ''::text AS email_domain
+SELECT 
+  customer_id,
+  company_name,
+  lower(split_part(email, '@', 2)) AS email_domain
 FROM customers
-WHERE false;
+WHERE email IS NOT NULL
+ORDER BY email_domain, customer_id;
 

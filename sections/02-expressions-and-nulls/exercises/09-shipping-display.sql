@@ -1,5 +1,11 @@
 -- Write the query defined in this section's README.
-SELECT order_id, ''::text AS shipped_on, ''::text AS shipping_state
+SELECT 
+  order_id,
+  coalesce(to_char(shipped_at, 'YYYY-MM-DD'), 'not shipped') AS shipped_on,
+  CASE 
+    WHEN shipped_at IS NULL THEN 'waiting'
+    ELSE 'shipped'
+  END AS shipping_state
 FROM orders
-WHERE false;
+ORDER BY order_id;
 
