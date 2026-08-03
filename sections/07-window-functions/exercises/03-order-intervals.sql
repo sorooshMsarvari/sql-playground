@@ -4,8 +4,6 @@
 -- Sort by customer_id, order_date, order_id.
 
 -- TODO
-SELECT customer_id, order_id, order_date, NULL::date AS previous_order_date,
-       NULL::integer AS days_since_previous
+SELECT *
 FROM orders
-WHERE false;
-
+WHERE true;

@@ -1,5 +1,4 @@
 -- Write the query defined in this section's README.
-SELECT product_id, product_name
+SELECT *
 FROM products
-WHERE false;
-
+WHERE true;

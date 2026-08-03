@@ -100,6 +100,8 @@ else
     boundary_seen=0
     if grep -Fxq "$boundary" "$combined_out"; then
         boundary_seen=1
+        : > "$actual_out"
+        : > "$expected_out"
         awk -v marker="$boundary" -v actual="$actual_out" -v expected="$expected_out" '
             $0 == marker { in_expected = 1; next }
             in_expected { print > expected; next }

@@ -3,7 +3,6 @@
 -- Extract channel and priority as text. Sort by customer_id.
 
 -- TODO
-SELECT customer_id, company_name, ''::text AS channel, ''::text AS priority
+SELECT *
 FROM customers
-WHERE false;
-
+WHERE true;

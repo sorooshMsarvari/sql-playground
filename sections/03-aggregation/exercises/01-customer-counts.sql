@@ -3,8 +3,6 @@
 -- Sort by customer_count descending, then country ascending.
 
 -- TODO
-SELECT country, 0::bigint AS customer_count
+SELECT *
 FROM customers
-WHERE false
-GROUP BY country;
-
+WHERE true;

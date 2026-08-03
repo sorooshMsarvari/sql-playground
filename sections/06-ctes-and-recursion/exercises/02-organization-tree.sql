@@ -7,8 +7,3 @@
 -- Sort by reporting_path.
 
 -- TODO: use WITH RECURSIVE.
-SELECT employee_id, first_name || ' ' || last_name AS employee_name,
-       0 AS depth, ''::text AS reporting_path
-FROM employees
-WHERE false;
-

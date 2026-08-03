@@ -5,7 +5,6 @@
 -- Sort by country, then presence_type.
 
 -- TODO
-SELECT country, ''::text AS presence_type
+SELECT *
 FROM customers
-WHERE false;
-
+WHERE true;

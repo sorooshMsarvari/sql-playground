@@ -4,7 +4,3 @@
 -- Round money to 2 decimals. Sort by month_start.
 
 -- TODO
-SELECT DATE '2024-01-01' AS month_start, 0::numeric AS monthly_revenue,
-       0::numeric AS running_revenue
-WHERE false;
-

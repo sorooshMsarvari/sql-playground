@@ -3,7 +3,6 @@
 -- Use NOT EXISTS. Sort by customer_id.
 
 -- TODO
-SELECT customer_id, company_name
+SELECT *
 FROM customers
-WHERE false;
-
+WHERE true;

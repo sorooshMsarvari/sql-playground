@@ -14,9 +14,3 @@
 -- Return only ranks 1 and 2. Sort by segment, revenue_rank, customer_id.
 
 -- TODO
-SELECT segment, 0::bigint AS revenue_rank, customer_id, company_name,
-       ''::text AS acquisition_channel, 0::bigint AS completed_orders,
-       0::numeric AS lifetime_revenue, NULL::date AS first_order, NULL::date AS last_order
-FROM customers
-WHERE false;
-

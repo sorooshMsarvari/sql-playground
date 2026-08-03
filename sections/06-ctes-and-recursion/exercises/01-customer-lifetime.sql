@@ -5,8 +5,3 @@
 -- Sort by lifetime_revenue descending, then customer_id.
 
 -- TODO
-SELECT customer_id, company_name, 0::bigint AS completed_orders,
-       0::numeric AS lifetime_revenue, NULL::date AS first_order, NULL::date AS last_order
-FROM customers
-WHERE false;
-

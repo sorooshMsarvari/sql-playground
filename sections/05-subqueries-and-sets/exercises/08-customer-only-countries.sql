@@ -1,5 +1,4 @@
 -- Write the query defined in this section's README.
-SELECT country
+SELECT *
 FROM customers
-WHERE false;
-
+WHERE true;

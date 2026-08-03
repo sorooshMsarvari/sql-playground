@@ -6,8 +6,3 @@
 -- Sort by revenue descending, then order_id ascending.
 
 -- TODO
-SELECT order_id, 0::numeric AS revenue, 0::bigint AS units
-FROM orders
-WHERE false
-GROUP BY order_id;
-

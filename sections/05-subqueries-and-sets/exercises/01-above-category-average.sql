@@ -3,7 +3,6 @@
 -- Sort by category_id, unit_price descending, product_id.
 
 -- TODO
-SELECT product_id, product_name, category_id, unit_price
+SELECT *
 FROM products
-WHERE false;
-
+WHERE true;

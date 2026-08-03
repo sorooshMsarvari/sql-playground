@@ -4,7 +4,3 @@
 -- Sort by sold_units descending, then product_name ascending.
 
 -- TODO
-SELECT p.product_id, p.product_name, 0::bigint AS sold_units
-FROM products p
-WHERE false;
-

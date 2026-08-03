@@ -3,7 +3,6 @@
 -- Sort by warranty_years descending, then product_name.
 
 -- TODO
-SELECT product_name, 0::integer AS warranty_years
+SELECT *
 FROM products
-WHERE false;
-
+WHERE true;

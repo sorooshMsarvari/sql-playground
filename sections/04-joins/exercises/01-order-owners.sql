@@ -3,7 +3,3 @@
 -- sales_rep is "first_name last_name". Sort by order_date, order_id.
 
 -- TODO
-SELECT o.order_id, o.order_date, ''::text AS company_name, ''::text AS sales_rep
-FROM orders o
-WHERE false;
-

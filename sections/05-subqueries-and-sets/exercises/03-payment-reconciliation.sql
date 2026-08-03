@@ -5,7 +5,3 @@
 -- Sort by absolute difference descending, then order_id.
 
 -- TODO
-SELECT order_id, 0::numeric AS order_total, 0::numeric AS paid_total, 0::numeric AS difference
-FROM orders
-WHERE false;
-
