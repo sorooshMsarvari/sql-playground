@@ -156,38 +156,126 @@ Important semantics:
 
 Answer file: [`exercises/04-category-products-json.sql`](exercises/04-category-products-json.sql)
 
-Return one row per category that has active products, with `category_name` and `products`. Build `products` using `jsonb_agg` of objects containing keys `product_id`, `name`, and `price`. Order objects inside each aggregate by product name then ID so JSON arrays are deterministic. Sort category rows by name.
+Build one JSONB product array for each category that has an active product. One output row must represent one such category.
+
+| Output column | Definition |
+|---|---|
+| `category_name` | Category name |
+| `products` | Ordered JSONB array of active-product objects |
+
+Every object in `products` must contain:
+
+| JSON key | Source value |
+|---|---|
+| `product_id` | Product identifier |
+| `name` | Product name |
+| `price` | Current unit price |
+
+Use `jsonb_build_object` for each product and `jsonb_agg` for the category array. Exclude discontinued products. Order objects inside each aggregate by product name ascending, then product ID ascending, and sort category rows by `category_name` ascending.
+
+Expected edge case: ordering the outer rows does not determine element order inside a JSON aggregate; the aggregate needs its own ordering.
 
 ### 5. Latest order with PostgreSQL `DISTINCT ON`
 
 Answer file: [`exercises/05-latest-order-distinct-on.sql`](exercises/05-latest-order-distinct-on.sql)
 
-For each customer with an order, use `DISTINCT ON (customer_id)` to return `customer_id`, `company_name`, `order_id`, `order_date`, and `status` for the newest order. PostgreSQL requires the leading `ORDER BY` expression to match the distinct key; follow it with date and order ID descending.
+Return the newest order for every customer who has placed an order. One output row must represent one such customer.
+
+| Output column | Definition |
+|---|---|
+| `customer_id` | Customer identifier |
+| `company_name` | Customer company name |
+| `order_id` | Newest order identifier |
+| `order_date` | Newest order date |
+| `status` | Newest order status |
+
+Requirements:
+
+- Join customers to orders and use PostgreSQL `DISTINCT ON (customer_id)`.
+- Begin `ORDER BY` with the same customer key required by `DISTINCT ON`.
+- Follow it with `order_date` descending and `order_id` descending.
+- Exclude customers without orders naturally through the inner join.
+
+Expected edge case: the descending order-ID tie-breaker determines which order survives when dates tie.
 
 ### 6. Successful-payment method pivot
 
 Answer file: [`exercises/06-payment-method-pivot.sql`](exercises/06-payment-method-pivot.sql)
 
-For each order having at least one successful payment, return `order_id`, `card_total`, `bank_transfer_total`, and `paypal_total`. Sum only succeeded rows and use aggregate `FILTER` per method. Zero-fill absent methods and round totals to two decimals. Sort by order ID.
+Pivot successful payment amounts into one row per order that has at least one successful payment.
+
+| Output column | Definition |
+|---|---|
+| `order_id` | Related order identifier |
+| `card_total` | Successful card amount, or zero, rounded to two decimals |
+| `bank_transfer_total` | Successful bank-transfer amount, or zero, rounded to two decimals |
+| `paypal_total` | Successful PayPal amount, or zero, rounded to two decimals |
+
+Requirements:
+
+- Filter input rows to payment status `succeeded` before grouping.
+- Group by `order_id`.
+- Use a separate aggregate `FILTER` for each payment method.
+- Convert a missing method total to zero and round every displayed total to two decimals.
+- Sort by `order_id` ascending.
+
+Expected edge case: an order with successful payments in only one method still requires zeroes in the other two output columns.
 
 ### 7. Quarterly completed revenue
 
 Answer file: [`exercises/07-quarterly-revenue.sql`](exercises/07-quarterly-revenue.sql)
 
-For each quarter in 2024 containing a completed order, return `quarter_start` as a date, distinct `completed_orders`, and discounted `revenue` rounded to two decimals. Group with `date_trunc('quarter', order_date)` and sort chronologically.
+Summarize completed-order activity by represented quarter in 2024. One output row must represent one quarter containing a completed order.
+
+| Output column | Definition |
+|---|---|
+| `quarter_start` | First date of the quarter, returned as `date` |
+| `completed_orders` | Number of distinct completed orders in the quarter |
+| `revenue` | Discounted item revenue for those orders, rounded to two decimals |
+
+Requirements:
+
+- Include completed orders from `2024-01-01` through the start of `2025-01-01`.
+- Join orders to their item rows and calculate historical discounted revenue.
+- Derive the grouping value with `date_trunc('quarter', order_date)` and cast it to `date`.
+- Count distinct order IDs because joining items multiplies order rows.
+- Do not generate quarters without completed orders.
+- Sort by `quarter_start` ascending.
+
+Expected edge case: counting joined item rows would overstate the number of completed orders.
 
 ### 8. Inventory risk capstone
 
 Answer file: [`exercises/08-inventory-risk-capstone.sql`](exercises/08-inventory-risk-capstone.sql)
 
-In a CTE, join inventory, warehouse, active product, and category data; extract product color from JSONB with fallback `unknown`; and compute `product_total_stock` across all warehouses using a window partition. Only in the outer query filter locations below reorder level.
+Report low-stock active-product locations while retaining company-wide product stock totals. One output row must represent one inventory location below its reorder threshold.
 
-Return `warehouse_name`, `category_name`, `product_name`, `product_color`, `units_in_stock`, `reorder_level`, `units_short`, and `product_total_stock`. Sort by shortage descending, then warehouse and product. Computing the window after filtering would produce an incorrect company-wide total.
+| Output column | Definition |
+|---|---|
+| `warehouse_name` | Warehouse name |
+| `category_name` | Product category name |
+| `product_name` | Product name |
+| `product_color` | Text from `attributes.color`, or `unknown` when absent |
+| `units_in_stock` | Units at the current location |
+| `reorder_level` | Threshold at the current location |
+| `units_short` | `reorder_level - units_in_stock` |
+| `product_total_stock` | Product's units summed across all warehouse inventory rows |
+
+Requirements:
+
+- In a CTE, join inventory to warehouses, active products, and categories.
+- Extract color with `->>` and replace a missing key with `unknown`.
+- Compute `SUM(units_in_stock) OVER (PARTITION BY product_id)` inside that CTE.
+- Only in the outer query keep rows where `units_in_stock < reorder_level`.
+- Calculate `units_short` from the current location values.
+- Sort by `units_short` descending, then `warehouse_name` and `product_name` ascending.
+
+Expected edge case: filtering to low locations before the window calculation would omit healthy locations from `product_total_stock` and produce an incorrect company-wide total.
 
 ## Running the checks
 
 ```bash
-# Only the three capstone-section exercises
+# Only section 10
 ./scripts/check-section.sh 10 --only
 
 # Every answer from sections 01 through 10

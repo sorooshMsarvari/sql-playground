@@ -113,43 +113,150 @@ Requirements:
 
 Answer file: [`exercises/04-name-and-price-search.sql`](exercises/04-name-and-price-search.sql)
 
-Find active products whose name contains the letter `a`, case-insensitively, and whose current price is between 20 and 150 inclusive. Return `product_id`, `product_name`, and `unit_price`. Use `ILIKE`, preserve both price endpoints, and sort by `product_name` then `product_id` ascending.
+Search the active catalog by product name and price. One output row must represent one matching product.
+
+| Output column | Definition |
+|---|---|
+| `product_id` | Product identifier |
+| `product_name` | Product display name |
+| `unit_price` | Current catalog price |
+
+Requirements:
+
+- Include only products whose `discontinued` value is `false`.
+- Require `product_name` to contain the letter `a`, ignoring letter case.
+- Include prices from 20 through 150, including both endpoints.
+- Use `ILIKE` for the name match.
+- Sort by `product_name` ascending, then `product_id` ascending.
+
+Expected edge case: a product priced exactly 20 or 150 qualifies when its name and lifecycle also match.
 
 ### 5. Open orders since July 2024
 
 Answer file: [`exercises/05-open-orders.sql`](exercises/05-open-orders.sql)
 
-List orders placed on or after `2024-07-01` whose status is either `pending` or `processing`. Return `order_id`, `order_date`, `status`, and `shipping_country`. Sort by `order_date` and then `order_id`, both ascending. Cancelled, refunded, and completed orders must not appear.
+List open orders placed since the start of July 2024. One output row must represent one matching order.
+
+| Output column | Definition |
+|---|---|
+| `order_id` | Order identifier |
+| `order_date` | Date the order was placed |
+| `status` | Current order status |
+| `shipping_country` | Destination country code |
+
+Requirements:
+
+- Include orders placed on or after `2024-07-01`.
+- Treat only `pending` and `processing` as open for this exercise.
+- Use one membership condition for the two allowed status values.
+- Sort by `order_date` ascending, then `order_id` ascending.
+
+Expected edge case: completed, cancelled, and refunded orders must remain excluded even when their dates satisfy the range.
 
 ### 6. Countries receiving completed orders
 
 Answer file: [`exercises/06-shipping-countries.sql`](exercises/06-shipping-countries.sql)
 
-Return the unique shipping-country codes used by completed orders. The single output column must be named `country`. Use `DISTINCT`, not grouping, and sort alphabetically by `country`.
+List the destination countries used by completed orders. One output row must represent one distinct country code.
+
+| Output column | Definition |
+|---|---|
+| `country` | A completed order's `shipping_country`, renamed to `country` |
+
+Requirements:
+
+- Include only orders whose status is `completed`.
+- Remove duplicate country codes with `DISTINCT`, not `GROUP BY`.
+- Alias the selected column exactly as `country`.
+- Sort by `country` ascending.
+
+Expected edge case: several completed orders shipped to the same country must still produce only one row for that country.
 
 ### 7. Second page of active products
 
 Answer file: [`exercises/07-second-product-page.sql`](exercises/07-second-product-page.sql)
 
-Paginate active products in stable `product_id` order with a page size of five. Return the second page—that is, skip the first five matching rows and return the next five. Output `product_id`, `sku`, and `product_name`. Filtering must happen before the ordered `LIMIT`/`OFFSET` page is selected.
+Return the second page of the active-product catalog. One output row must represent one active product, and each page contains at most five rows.
+
+| Output column | Definition |
+|---|---|
+| `product_id` | Product identifier |
+| `sku` | Product stock-keeping code |
+| `product_name` | Product display name |
+
+Requirements:
+
+- Exclude discontinued products before pagination.
+- Sort by `product_id` ascending to make page membership stable.
+- Skip the first five matching products.
+- Return at most the next five matching products.
+
+Expected edge case: applying the offset before filtering would select the wrong page when discontinued products occur among the early IDs.
 
 ### 8. Enterprise and recent midmarket customers
 
 Answer file: [`exercises/08-priority-customer-filter.sql`](exercises/08-priority-customer-filter.sql)
 
-Return every enterprise customer, regardless of acquisition date, plus midmarket customers created on or after `2023-01-01`. Output `customer_id`, `company_name`, `segment`, and `created_at`. Parenthesize the midmarket/date branch to make the boolean logic unambiguous. Sort by `segment`, then `customer_id`.
+Build a priority-customer list from two different qualifying groups. One output row must represent one qualifying customer.
+
+| Output column | Definition |
+|---|---|
+| `customer_id` | Customer identifier |
+| `company_name` | Customer company name |
+| `segment` | Commercial segment |
+| `created_at` | Customer acquisition date |
+
+Requirements:
+
+- Include every `enterprise` customer regardless of acquisition date.
+- Also include `midmarket` customers created on or after `2023-01-01`.
+- Do not include `smb` customers.
+- Parenthesize the midmarket/date branch so the `AND` and `OR` logic is explicit.
+- Sort by `segment` ascending, then `customer_id` ascending.
+
+Expected edge case: the date condition applies only to midmarket customers, not to the enterprise branch.
 
 ### 9. Non-negative spring orders
 
 Answer file: [`exercises/09-spring-orders.sql`](exercises/09-spring-orders.sql)
 
-Find orders from `2024-03-01` through `2024-05-31`, including both boundary dates, whose status is neither `cancelled` nor `refunded`. Return `order_id`, `order_date`, and `status`, sorted by `order_date` then `order_id`.
+Find spring 2024 orders that did not end in a negative lifecycle state. One output row must represent one matching order.
+
+| Output column | Definition |
+|---|---|
+| `order_id` | Order identifier |
+| `order_date` | Date the order was placed |
+| `status` | Current order status |
+
+Requirements:
+
+- Include dates from `2024-03-01` through `2024-05-31`, including both endpoints.
+- Exclude statuses `cancelled` and `refunded` with `NOT IN`.
+- Allow every other status.
+- Sort by `order_date` ascending, then `order_id` ascending.
+
+Expected edge case: orders on the first and last dates of the range qualify when their statuses are allowed.
 
 ### 10. Recently introduced active catalog items
 
 Answer file: [`exercises/10-recent-catalog.sql`](exercises/10-recent-catalog.sql)
 
-Find active products created on or after `2023-01-01`. Return `product_id` as `catalog_id`, `product_name` as `name`, and `unit_price` as `price`. Sort by the underlying `created_at` newest first and use `product_id` ascending as the tie-breaker. The checker validates the aliases.
+List active catalog items introduced since the start of 2023. One output row must represent one matching product.
+
+| Output column | Definition |
+|---|---|
+| `catalog_id` | `products.product_id` |
+| `name` | `products.product_name` |
+| `price` | `products.unit_price` |
+
+Requirements:
+
+- Include only active products created on or after `2023-01-01`.
+- Use the exact output aliases `catalog_id`, `name`, and `price`.
+- Sort by the underlying `created_at` value descending.
+- Break equal creation dates with `product_id` ascending.
+
+Expected edge case: `created_at` controls the order even though it is not returned as an output column.
 
 ## Running the checks
 

@@ -115,43 +115,154 @@ Use a half-open range ending at `2024-07-01`. Sort by `order_date` ascending and
 
 Answer file: [`exercises/04-employee-identifiers.sql`](exercises/04-employee-identifiers.sql)
 
-For every employee, return `employee_id`, `full_name`, `initials`, and `username`. `full_name` is first and last name separated by one space; `initials` is the uppercase first character of each name; `username` is lowercase `first_name.last_name`. Sort by `employee_id`. Do not hard-code any names.
+Create reusable display identifiers for every employee. One output row must represent one employee.
+
+| Output column | Definition |
+|---|---|
+| `employee_id` | Employee identifier |
+| `full_name` | `first_name`, one space, then `last_name` |
+| `initials` | Uppercase first character of each name, with no separator |
+| `username` | Lowercase `first_name.last_name` |
+
+Requirements:
+
+- Derive every display value from the stored name columns.
+- Use text concatenation and text functions rather than hard-coding names.
+- Keep the exact output aliases shown above.
+- Sort by `employee_id` ascending.
+
+Expected edge case: uppercase initials and the lowercase username require separate case conversions.
 
 ### 5. Calendar parts of 2024 orders
 
 Answer file: [`exercises/05-order-calendar-parts.sql`](exercises/05-order-calendar-parts.sql)
 
-For every order placed in calendar year 2024, return `order_id` plus `order_year`, `order_month`, and `order_quarter` extracted from `order_date` and cast to `integer`. Sort chronologically by the original `order_date`, then `order_id`.
+Break 2024 order dates into calendar components. One output row must represent one order placed during 2024.
+
+| Output column | Definition |
+|---|---|
+| `order_id` | Order identifier |
+| `order_year` | Year extracted from `order_date`, as `integer` |
+| `order_month` | Month number extracted from `order_date`, as `integer` |
+| `order_quarter` | Quarter number extracted from `order_date`, as `integer` |
+
+Requirements:
+
+- Use a half-open date range from `2024-01-01` through the start of `2025-01-01`.
+- Use `EXTRACT` for all three calendar values.
+- Cast every extracted value to `integer`.
+- Sort by the original `order_date` ascending, then `order_id` ascending.
+
+Expected edge case: the output does not include `order_date`, but chronological ordering must still use it.
 
 ### 6. Normalize optional order notes
 
 Answer file: [`exercises/06-normalized-notes.sql`](exercises/06-normalized-notes.sql)
 
-Return every `order_id` and a `note_text`. Trim leading and trailing whitespace from `notes`; treat an empty trimmed string as missing; display `none` for a missing value. The intended expression order is `BTRIM` → `NULLIF` → `COALESCE`. Sort by `order_id`.
+Normalize the optional note for every order. One output row must represent one order, including an order whose note is missing or blank.
+
+| Output column | Definition |
+|---|---|
+| `order_id` | Order identifier |
+| `note_text` | Trimmed note text, or the literal `none` when no content remains |
+
+Requirements:
+
+- Remove leading and trailing whitespace with `BTRIM`.
+- Convert an empty trimmed string to `NULL` with `NULLIF`.
+- Replace the resulting `NULL` with `none` using `COALESCE`.
+- Apply the operations in the order `BTRIM` → `NULLIF` → `COALESCE`.
+- Sort by `order_id` ascending.
+
+Expected edge case: a note containing only whitespace must be displayed as `none`, just like a stored `NULL`.
 
 ### 7. Active product price bands
 
 Answer file: [`exercises/07-product-price-bands.sql`](exercises/07-product-price-bands.sql)
 
-Classify every active product as `budget` when `unit_price < 50`, `standard` when price is at least 50 but below 150, and `premium` when price is at least 150. Return `product_id`, `product_name`, and `price_band`. Sort by the underlying `unit_price` ascending, then `product_id`.
+Classify every active product into a price band. One output row must represent one active product.
+
+| Output column | Definition |
+|---|---|
+| `product_id` | Product identifier |
+| `product_name` | Product display name |
+| `price_band` | `budget`, `standard`, or `premium` according to current price |
+
+Requirements:
+
+- `budget`: `unit_price < 50`
+- `standard`: `unit_price >= 50` and `unit_price < 150`
+- `premium`: `unit_price >= 150`
+- Exclude discontinued products.
+- Sort by underlying `unit_price` ascending, then `product_id` ascending.
+
+Evaluate the `CASE` conditions from the lowest threshold upward.
+
+Expected edge case: a price of exactly 50 is `standard`, while a price of exactly 150 is `premium`.
 
 ### 8. Human-readable discounts
 
 Answer file: [`exercises/08-discount-display.sql`](exercises/08-discount-display.sql)
 
-For item rows with a positive discount, return `order_id`, `product_id`, `discount_percent` (`discount * 100`, rounded to one decimal), and `net_unit_price` (`unit_price * (1 - discount)`, rounded to two decimals). Sort by `order_id`, then `product_id`.
+Display discounts and net prices for discounted order items. One output row must represent one item row whose discount is positive.
+
+| Output column | Definition |
+|---|---|
+| `order_id` | Parent order identifier |
+| `product_id` | Product identifier |
+| `discount_percent` | `discount * 100`, rounded to one decimal place |
+| `net_unit_price` | `unit_price * (1 - discount)`, rounded to two decimal places |
+
+Requirements:
+
+- Exclude item rows whose discount is zero.
+- Convert the stored fractional discount to a percentage before rounding.
+- Calculate net price from the historical item `unit_price`.
+- Sort by `order_id` ascending, then `product_id` ascending.
+
+Expected edge case: `discount` is a fraction such as `0.100`, not an already formatted percentage.
 
 ### 9. Shipping display values
 
 Answer file: [`exercises/09-shipping-display.sql`](exercises/09-shipping-display.sql)
 
-For every order, return `order_id`, `shipped_on`, and `shipping_state`. Format a present `shipped_at` as `YYYY-MM-DD`; otherwise use the text `not shipped`. `shipping_state` is `shipped` when a date exists and `waiting` otherwise. Sort by `order_id`. Convert the date to text before using `COALESCE` with a text label.
+Create shipping display values for every order. One output row must represent one order, whether shipped or not.
+
+| Output column | Definition |
+|---|---|
+| `order_id` | Order identifier |
+| `shipped_on` | Shipping date formatted as `YYYY-MM-DD`, or `not shipped` when absent |
+| `shipping_state` | `shipped` when `shipped_at` exists; otherwise `waiting` |
+
+Requirements:
+
+- Convert a present shipping date to text with `TO_CHAR`.
+- Use `COALESCE` only after the date has become text.
+- Derive `shipping_state` with `CASE` and a `NULL` test.
+- Sort by `order_id` ascending.
+
+Expected edge case: SQL cannot directly combine a `date` value and the text label `not shipped` without first formatting the date.
 
 ### 10. Customer email domains
 
 Answer file: [`exercises/10-customer-email-domains.sql`](exercises/10-customer-email-domains.sql)
 
-For customers with an email address, return `customer_id`, `company_name`, and the lowercase text after `@` as `email_domain`. Use `split_part`; exclude `NULL` emails. Sort by `email_domain`, then `customer_id`.
+Extract an email domain for every customer who has an email address. One output row must represent one qualifying customer.
+
+| Output column | Definition |
+|---|---|
+| `customer_id` | Customer identifier |
+| `company_name` | Customer company name |
+| `email_domain` | Lowercase text after the `@` separator |
+
+Requirements:
+
+- Exclude customers whose email is `NULL`.
+- Use `split_part(email, '@', 2)` to extract the domain portion.
+- Normalize the extracted domain with `LOWER`.
+- Sort by `email_domain` ascending, then `customer_id` ascending.
+
+Expected edge case: missing emails must be filtered before they can produce meaningless empty domain text.
 
 ## Running the checks
 

@@ -116,55 +116,212 @@ Sort by `completed_revenue` descending, then `customer_id` ascending.
 
 Answer file: [`exercises/04-order-status-summary.sql`](exercises/04-order-status-summary.sql)
 
-For orders placed in 2024, return one row per `status` with `order_count` and `gross_revenue`. Count distinct orders and calculate discounted item revenue even for non-completed statuses; this is a workload summary, not recognized revenue. Round revenue to two decimals and sort by `status`.
+Summarize the 2024 order workload by lifecycle status. One output row must represent one status that occurs during 2024.
+
+| Output column | Definition |
+|---|---|
+| `status` | Stored order status |
+| `order_count` | Number of distinct orders with that status |
+| `gross_revenue` | Sum of discounted item revenue for those orders, rounded to two decimals |
+
+Requirements:
+
+- Include orders placed on or after `2024-01-01` and before `2025-01-01`.
+- Join each order to its item rows and use `quantity * unit_price * (1 - discount)` for line revenue.
+- Count distinct order IDs because one order can have several item rows after the join.
+- Include every represented status, not only `completed`; this is a workload summary rather than recognized revenue.
+- Sort by `status` ascending.
+
+Expected edge case: joining order items multiplies order rows, so counting joined rows would overstate `order_count`.
 
 ### 5. Active-product price statistics by category
 
 Answer file: [`exercises/05-category-price-statistics.sql`](exercises/05-category-price-statistics.sql)
 
-Return every `category_name` with `active_products`, `min_price`, `max_price`, and `average_price` for active products only. Round the average to two decimals. Preserve a category even if it has no active products; its count is zero and price aggregates are `NULL`. Sort by category name.
+Calculate active-product price statistics for every category. One output row must represent one category, including a category with no active products.
+
+| Output column | Definition |
+|---|---|
+| `category_name` | Category name |
+| `active_products` | Number of products whose `discontinued` value is `false` |
+| `min_price` | Lowest active-product `unit_price`, or `NULL` when none exists |
+| `max_price` | Highest active-product `unit_price`, or `NULL` when none exists |
+| `average_price` | Average active-product price rounded to two decimals, or `NULL` when none exists |
+
+Requirements:
+
+- Start from `categories` so every category can be preserved.
+- Match only active products while retaining a category that has no match.
+- Count a product identifier rather than all joined rows so an unmatched category receives zero.
+- Let `MIN`, `MAX`, and `AVG` ignore the missing product values naturally.
+- Sort by `category_name` ascending.
+
+Expected edge case: filtering active products after the left join would remove categories with no active product.
 
 ### 6. Completed performance for every sales employee
 
 Answer file: [`exercises/06-sales-rep-performance.sql`](exercises/06-sales-rep-performance.sql)
 
-Return every employee in the `Sales` department, including managers with no assigned completed order. Output `employee_id`, concatenated `sales_rep`, distinct `completed_orders`, and discounted `completed_revenue` rounded to two decimals. Zero-fill missing metrics. Sort by revenue descending, then employee ID.
+Report completed-order performance for every employee in the `Sales` department. One output row must represent one sales employee, including a manager or representative with no completed order.
+
+| Output column | Definition |
+|---|---|
+| `employee_id` | Employee identifier |
+| `sales_rep` | `first_name` and `last_name` joined with one space |
+| `completed_orders` | Number of distinct completed orders assigned to the employee |
+| `completed_revenue` | Discounted item revenue from those orders, rounded to two decimals |
+
+Requirements:
+
+- Exclude employees outside the `Sales` department.
+- Preserve Sales employees who have no assigned completed order.
+- Count distinct orders because joining order items produces several rows for a multi-line order.
+- Use `quantity * unit_price * (1 - discount)` for revenue.
+- Return zero for both metrics when an employee has no completed order.
+- Sort by `completed_revenue` descending, then `employee_id` ascending.
+
+Expected edge case: placing the completed-status condition where it removes unmatched rows would lose Sales employees with no completed order.
 
 ### 7. Monthly order-status counts
 
 Answer file: [`exercises/07-monthly-order-status.sql`](exercises/07-monthly-order-status.sql)
 
-For each month represented by an order in 2024, return `month_start` as a date, `total_orders`, `completed_orders`, and `cancelled_orders`. Use aggregate `FILTER` for the status counts and sort chronologically. This question does not require empty months.
+Summarize order counts for each represented month in 2024. One output row must represent one month that contains at least one order.
+
+| Output column | Definition |
+|---|---|
+| `month_start` | First day of the order month, returned as a `date` |
+| `total_orders` | Number of orders in the month, regardless of status |
+| `completed_orders` | Number of monthly orders whose status is `completed` |
+| `cancelled_orders` | Number of monthly orders whose status is `cancelled` |
+
+Requirements:
+
+- Include orders placed on or after `2024-01-01` and before `2025-01-01`.
+- Use `date_trunc` to derive the monthly grouping value and cast it to `date`.
+- Use aggregate `FILTER` clauses for the two status-specific counts.
+- Do not generate months that have no order; that is handled in a later section.
+- Sort by `month_start` ascending.
+
+Expected edge case: `total_orders` includes completed, cancelled, and every other order status.
 
 ### 8. Per-customer status counts
 
 Answer file: [`exercises/08-customer-status-counts.sql`](exercises/08-customer-status-counts.sql)
 
-Return every customer with `customer_id`, `company_name`, `total_orders`, `completed_orders`, and `open_orders`, where open means `pending` or `processing`. Customers without orders must receive zero counts. With a left join, count `o.order_id`, not `COUNT(*)`. Sort by customer ID.
+Count orders by status for every customer. One output row must represent one customer, including a customer who has never placed an order.
+
+| Output column | Definition |
+|---|---|
+| `customer_id` | Customer identifier |
+| `company_name` | Customer company name |
+| `total_orders` | Number of all orders placed by the customer |
+| `completed_orders` | Number of orders whose status is `completed` |
+| `open_orders` | Number of orders whose status is `pending` or `processing` |
+
+Requirements:
+
+- Start from `customers` and preserve customers without matching orders.
+- Use aggregate `FILTER` clauses for the completed and open counts.
+- Count `orders.order_id`, not all joined rows, so an unmatched customer receives zero.
+- Group by the customer identity and name.
+- Sort by `customer_id` ascending.
+
+Expected edge case: the placeholder row created by a left join must not be counted as an order.
 
 ### 9. Product inventory totals
 
 Answer file: [`exercises/09-product-inventory-totals.sql`](exercises/09-product-inventory-totals.sql)
 
-For every product return `product_id`, `product_name`, total `units_in_stock` as `total_stock`, number of inventory rows as `stocked_warehouses`, and count of locations where stock is strictly below reorder level as `below_reorder_locations`. Zero-fill products absent from inventory. Sort by total stock descending, then product ID.
+Summarize warehouse inventory for every product. One output row must represent one product, including a product absent from all inventory rows.
+
+| Output column | Definition |
+|---|---|
+| `product_id` | Product identifier |
+| `product_name` | Product name |
+| `total_stock` | Sum of `units_in_stock` across all warehouses |
+| `stocked_warehouses` | Number of inventory rows for the product |
+| `below_reorder_locations` | Number of locations where stock is strictly below the reorder level |
+
+Requirements:
+
+- Start from `products` and preserve products without inventory rows.
+- Treat a product with no inventory as having zero total stock and zero warehouse counts.
+- A location is below its threshold only when `units_in_stock < reorder_level`; equality does not count.
+- Count an inventory key rather than all joined rows.
+- Sort by `total_stock` descending, then `product_id` ascending.
+
+Expected edge case: `SUM` over no matched inventory values produces `NULL`, which must become zero.
 
 ### 10. Warehouse reorder summary
 
 Answer file: [`exercises/10-warehouse-reorder-summary.sql`](exercises/10-warehouse-reorder-summary.sql)
 
-For warehouses with at least one inventory row strictly below its reorder level, return `warehouse_id`, `warehouse_name`, `low_skus`, and `units_short`. `units_short` is the sum of `GREATEST(reorder_level - units_in_stock, 0)` across the warehouse. Use `HAVING` and sort by shortage descending, then warehouse ID.
+Report the reorder workload for warehouses that have at least one low-stock product. One output row must represent one affected warehouse.
+
+| Output column | Definition |
+|---|---|
+| `warehouse_id` | Warehouse identifier |
+| `warehouse_name` | Warehouse name |
+| `low_skus` | Number of inventory rows strictly below their reorder level |
+| `units_short` | Total units required to bring low-stock rows up to their reorder levels |
+
+Requirements:
+
+- Join warehouses to their inventory rows and group by warehouse identity and name.
+- A row is low only when `units_in_stock < reorder_level`.
+- Calculate each row's shortage as `GREATEST(reorder_level - units_in_stock, 0)` before summing.
+- Use `HAVING` to remove warehouse groups whose low-SKU count is zero.
+- Sort by `units_short` descending, then `warehouse_id` ascending.
+
+Expected edge case: inventory at or above its reorder level contributes zero to `units_short`.
 
 ### 11. Completed sales by category
 
 Answer file: [`exercises/11-category-completed-sales.sql`](exercises/11-category-completed-sales.sql)
 
-Return every category with `category_id`, `category_name`, `completed_units`, and discounted `completed_revenue`. Preserve zero-sale categories with left joins and zero-fill both metrics. Round revenue to two decimals. Sort by revenue descending, then category ID.
+Summarize completed sales for every product category. One output row must represent one category, including a category with no completed sales.
+
+| Output column | Definition |
+|---|---|
+| `category_id` | Category identifier |
+| `category_name` | Category name |
+| `completed_units` | Sum of item quantities from completed orders |
+| `completed_revenue` | Discounted item revenue from completed orders, rounded to two decimals |
+
+Requirements:
+
+- Follow categories to products, order items, and orders while preserving categories with no matching completed sale.
+- Include historical sales from both active and discontinued products.
+- Apply the completed-status condition to both sales aggregates without removing zero-sale categories.
+- Use `quantity * unit_price * (1 - discount)` for revenue.
+- Return zero for both metrics when a category has no completed sale.
+- Sort by `completed_revenue` descending, then `category_id` ascending.
+
+Expected edge case: filtering completed orders as an ordinary final row filter would remove categories that need zero-valued results.
 
 ### 12. Average completed-order value by segment
 
 Answer file: [`exercises/12-segment-order-value.sql`](exercises/12-segment-order-value.sql)
 
-First aggregate items to one row per completed order. Then group those order totals by customer `segment`. Return `segment`, `completed_orders`, `average_order_value`, and `total_revenue`, with monetary outputs rounded to two decimals. This prevents large orders with many lines from receiving extra weight. Sort by segment.
+Compare completed-order value across customer segments. The final result must contain one row per segment represented by at least one completed order.
+
+| Output column | Definition |
+|---|---|
+| `segment` | Customer segment: `smb`, `midmarket`, or `enterprise` |
+| `completed_orders` | Number of completed orders placed by customers in the segment |
+| `average_order_value` | Average of the completed order totals, rounded to two decimals |
+| `total_revenue` | Sum of the completed order totals, rounded to two decimals |
+
+Requirements:
+
+- First create one intermediate row per completed order by summing its discounted item revenue.
+- Keep `customer_id` with each order total so the order can be associated with its customer's segment.
+- Count and average the order-level rows only after that first aggregation.
+- Give every order equal weight in `average_order_value`, regardless of how many item rows it contains.
+- Sort by `segment` ascending.
+
+Expected edge case: averaging raw item rows would give multi-line orders more influence than single-line orders.
 
 ## Running the checks
 

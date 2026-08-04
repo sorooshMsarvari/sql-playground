@@ -121,31 +121,114 @@ Put order-status and date-range predicates in the join condition so an empty gen
 
 Answer file: [`exercises/04-product-stock-risk.sql`](exercises/04-product-stock-risk.sql)
 
-For every active product, first aggregate all inventory rows into `total_stock` and `total_reorder_level`, zero-filling products absent from inventory. In a second CTE classify the row as `at risk` when total stock is below total reorder level, otherwise `sufficient`. Return `product_id`, `product_name`, both totals, and `stock_state`. Sort by state, then product ID.
+Classify company-wide stock risk for every active product. One output row must represent one active product, including a product absent from inventory.
+
+| Output column | Definition |
+|---|---|
+| `product_id` | Product identifier |
+| `product_name` | Product display name |
+| `total_stock` | Sum of `units_in_stock` across all locations, or zero when absent |
+| `total_reorder_level` | Sum of `reorder_level` across all locations, or zero when absent |
+| `stock_state` | `at risk` when total stock is lower than the total threshold; otherwise `sufficient` |
+
+Required stages:
+
+1. A `stock_totals` CTE that starts from active products, preserves missing inventory, and calculates both totals.
+2. A second CTE that classifies each aggregated product.
+3. A final query that returns the five required columns.
+
+Sort by `stock_state` ascending, then `product_id` ascending.
+
+Expected edge case: an active product with no inventory has two zero totals and is therefore `sufficient`, because zero is not less than zero.
 
 ### 5. Recursive customer referral tree
 
 Answer file: [`exercises/05-referral-tree.sql`](exercises/05-referral-tree.sql)
 
-Starting at customer 1, recursively follow rows whose `referred_by` points to a customer already found. Return `customer_id`, `company_name`, `depth` (root 0), and `referral_path` with company names joined by ` > `. Use `UNION ALL` and sort by complete path.
+Starting at customer 1, return every customer reachable through the referral hierarchy. One output row must represent one customer in that tree.
+
+| Output column | Definition |
+|---|---|
+| `customer_id` | Customer identifier |
+| `company_name` | Customer company name |
+| `depth` | Root = 0, direct referral = 1, next level = 2 |
+| `referral_path` | Company names from the root to the current customer, joined with ` > ` |
+
+Requirements:
+
+- Use `WITH RECURSIVE` with customer 1 as the anchor row.
+- In the recursive branch, match a child's `referred_by` to a customer already in the CTE.
+- Increase `depth` by one for each referral edge.
+- Extend the parent's path with the child company name.
+- Combine anchor and recursive branches with `UNION ALL`.
+- Sort by the complete `referral_path` ascending.
+
+Expected edge case: customers outside customer 1's referral descendants must not appear.
 
 ### 6. Daily January calendar
 
 Answer file: [`exercises/06-january-daily-orders.sql`](exercises/06-january-daily-orders.sql)
 
-Generate all 31 dates from `2024-01-01` through `2024-01-31`. Return `calendar_date`, `total_orders`, and `completed_orders`, including zeroes on dates with no orders. Left join orders by exact date, count `o.order_id`, use `FILTER` for completed count, and sort chronologically.
+Create a complete daily order calendar for January 2024. One output row must represent one calendar date, whether or not an order exists.
+
+| Output column | Definition |
+|---|---|
+| `calendar_date` | Date from `2024-01-01` through `2024-01-31` |
+| `total_orders` | Number of orders placed on that date |
+| `completed_orders` | Number of those orders whose status is `completed` |
+
+Requirements:
+
+- Generate all 31 dates with `generate_series` at one-day intervals and cast them to `date`.
+- Left join orders by exact `order_date` so empty dates survive.
+- Count `orders.order_id`, not every joined row, for the total.
+- Use aggregate `FILTER` for the completed count.
+- Sort by `calendar_date` ascending.
+
+Expected edge case: a date without an order must return zero for both counts, not disappear.
 
 ### 7. Completed revenue share by category
 
 Answer file: [`exercises/07-category-revenue-share.sql`](exercises/07-category-revenue-share.sql)
 
-Build a `category_revenue` CTE from completed discounted sales and a one-row `grand_total` CTE. Return `category_name`, revenue rounded as `category_revenue`, and `revenue_percent = 100 * category revenue / grand total`, rounded to two decimals. Sort by category revenue descending, then name.
+Calculate each selling category's share of completed-order revenue. One output row must represent one category with completed sales.
+
+| Output column | Definition |
+|---|---|
+| `category_name` | Category name |
+| `category_revenue` | Category's discounted completed-order revenue, rounded to two decimals |
+| `revenue_percent` | `100 * category revenue / grand total`, rounded to two decimals |
+
+Required stages:
+
+1. A `category_revenue` CTE that joins categories through products and items to completed orders and returns one unrounded revenue total per category.
+2. A one-row `grand_total` CTE that sums those category totals.
+3. A final query that combines each category with the grand total and calculates its percentage.
+
+Sort by `category_revenue` descending, then `category_name` ascending.
+
+Expected edge case: calculate percentages from unrounded category totals and round only the displayed results.
 
 ### 8. Customer completed-order activity buckets
 
 Answer file: [`exercises/08-customer-activity-buckets.sql`](exercises/08-customer-activity-buckets.sql)
 
-Count completed orders for every customer, classify the customer as `none`, `one`, or `repeat` (two or more), then count customers in each class. Return `activity_bucket` and `customer_count`. Display buckets in semantic order: none, one, repeat.
+Group every customer by completed-order activity, then count customers in each group. One final output row must represent one represented activity bucket.
+
+| Output column | Definition |
+|---|---|
+| `activity_bucket` | `none`, `one`, or `repeat` |
+| `customer_count` | Number of customers assigned to that bucket |
+
+Bucket rules:
+
+- `none`: zero completed orders
+- `one`: exactly one completed order
+- `repeat`: two or more completed orders
+
+First count completed orders for every customer, preserving customers without orders. Classify those customer-level rows in a second stage, then group the classified rows by bucket. Display buckets in semantic order: `none`, `one`, `repeat`.
+
+Expected edge case: counting all order statuses would incorrectly classify customers whose only orders are not completed.
 
 ## Running the checks
 

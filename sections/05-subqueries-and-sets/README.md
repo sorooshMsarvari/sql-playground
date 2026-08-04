@@ -139,41 +139,134 @@ Return `country` and `presence_type`. Sort the final combined result by both col
 
 Answer file: [`exercises/05-products-never-ordered.sql`](exercises/05-products-never-ordered.sql)
 
-Return `product_id` and `product_name` for products that never appear in `order_items`, regardless of product lifecycle or order status. Use correlated `NOT EXISTS` and sort by product ID. Testing orders is insufficient—the relationship to a product exists at item level.
+Find products that have never appeared on an order item. One output row must represent one never-ordered product.
+
+| Output column | Definition |
+|---|---|
+| `product_id` | Product identifier |
+| `product_name` | Product display name |
+
+Requirements:
+
+- Test for the absence of `order_items` rows correlated by `product_id`.
+- Use `NOT EXISTS` rather than a join for this exercise.
+- Include both active and discontinued products when they have never been ordered.
+- Consider item rows from every order status.
+- Sort by `product_id` ascending.
+
+Expected edge case: testing only the `orders` table cannot establish whether a particular product was ordered; that relationship exists in `order_items`.
 
 ### 6. Customers with a large order line
 
 Answer file: [`exercises/06-customers-with-large-lines.sql`](exercises/06-customers-with-large-lines.sql)
 
-Return customers for whom at least one order item has `quantity >= 5`, across all order statuses. Output `customer_id` and `company_name`, sorted by customer ID. Use `EXISTS` with orders joined to items; the outer result must contain each qualifying customer once without `DISTINCT`.
+Find customers who have at least one order line containing five or more units. One output row must represent one qualifying customer.
+
+| Output column | Definition |
+|---|---|
+| `customer_id` | Customer identifier |
+| `company_name` | Customer company name |
+
+Requirements:
+
+- Use a correlated `EXISTS` subquery from the current customer.
+- Inside the subquery, join orders to order items and require `quantity >= 5`.
+- Consider orders in every lifecycle status.
+- Do not use `DISTINCT`; `EXISTS` should keep the outer customer row singular.
+- Sort by `customer_id` ascending.
+
+Expected edge case: several qualifying item rows for one customer must not duplicate that customer in the output.
 
 ### 7. Active price leaders per category
 
 Answer file: [`exercises/07-category-price-leaders.sql`](exercises/07-category-price-leaders.sql)
 
-Return every active product tied for the highest active-product price in its category. Output `category_name`, `product_id`, `product_name`, and `unit_price`. Compare the product with a correlated `MAX` over active peers; equality intentionally preserves ties. Sort by category name, then product ID.
+Find the most expensive active product or products in each category. One output row must represent one active category price leader.
+
+| Output column | Definition |
+|---|---|
+| `category_name` | Product's category name |
+| `product_id` | Product identifier |
+| `product_name` | Product display name |
+| `unit_price` | Current catalog price |
+
+Requirements:
+
+- Exclude discontinued products from both the outer candidates and the peer comparison.
+- Use a correlated subquery to calculate `MAX(unit_price)` among active products in the current category.
+- Keep candidates whose price equals that maximum.
+- Preserve ties rather than choosing one arbitrary product.
+- Sort by `category_name` ascending, then `product_id` ascending.
+
+Expected edge case: two products tied at the category maximum must both be returned.
 
 ### 8. Customer countries without a warehouse
 
 Answer file: [`exercises/08-customer-only-countries.sql`](exercises/08-customer-only-countries.sql)
 
-Use `EXCEPT` to return distinct non-`NULL` customer countries that do not appear in `warehouses.country`. The sole column is `country`; sort it ascending. Do not simulate the set difference with a join in this exercise.
+Find countries that contain a customer but no warehouse. One output row must represent one distinct qualifying country code.
+
+| Output column | Definition |
+|---|---|
+| `country` | Non-`NULL` customer country absent from warehouse countries |
+
+Requirements:
+
+- Build the first set from non-`NULL` `customers.country` values.
+- Build the second set from `warehouses.country` values.
+- Use `EXCEPT` to subtract the warehouse set from the customer set.
+- Do not simulate the set difference with a join in this exercise.
+- Sort the final result by `country` ascending.
+
+Expected edge case: repeated customers in one country still produce one row because set operations remove duplicates by default.
 
 ### 9. Countries shared by customers and warehouses
 
 Answer file: [`exercises/09-shared-presence-countries.sql`](exercises/09-shared-presence-countries.sql)
 
-Use `INTERSECT` to return distinct country codes present in both non-`NULL` customer countries and warehouse countries. Return one column named `country`, sorted ascending.
+Find countries represented in both the customer and warehouse tables. One output row must represent one distinct shared country code.
+
+| Output column | Definition |
+|---|---|
+| `country` | Country code present in both source sets |
+
+Requirements:
+
+- Build the customer set from non-`NULL` `customers.country` values.
+- Build the warehouse set from `warehouses.country` values.
+- Use `INTERSECT` to keep values common to both sets.
+- Return the column with the name `country`.
+- Sort by `country` ascending.
+
+Expected edge case: multiple customers in a shared country must not create duplicate output rows.
 
 ### 10. Latest order per customer with `LATERAL`
 
 Answer file: [`exercises/10-latest-order-lateral.sql`](exercises/10-latest-order-lateral.sql)
 
-Return every customer with `customer_id`, `company_name`, `latest_order_id`, `latest_order_date`, and `latest_order_status`. Use `LEFT JOIN LATERAL` to run a correlated order query, sort it by date and order ID descending, and take one row. Customers without orders retain `NULL` order fields. Sort the final output by customer ID.
+Attach the latest order, when present, to every customer. One output row must represent one customer.
+
+| Output column | Definition |
+|---|---|
+| `customer_id` | Customer identifier |
+| `company_name` | Customer company name |
+| `latest_order_id` | Newest order identifier, or `NULL` when no order exists |
+| `latest_order_date` | Newest order date, or `NULL` when no order exists |
+| `latest_order_status` | Newest order status, or `NULL` when no order exists |
+
+Requirements:
+
+- Start from all customers and use `LEFT JOIN LATERAL` for the correlated order lookup.
+- Inside the lateral query, match the current customer and sort by `order_date` descending.
+- Break equal dates with `order_id` descending, then limit the lateral result to one row.
+- Preserve customers without orders with `NULL` order fields.
+- Sort the final output by `customer_id` ascending.
+
+Expected edge case: the order-ID tie-breaker makes the selected row deterministic when a customer has multiple orders on one date.
 
 ## Running the checks
 
 ```bash
 ./scripts/check-section.sh 05          # sections 01–05
-./scripts/check-section.sh 05 --only   # these four exercises only
+./scripts/check-section.sh 05 --only   # only section 05
 ```

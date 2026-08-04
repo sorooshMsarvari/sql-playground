@@ -107,43 +107,159 @@ Do not replace stock with hard-coded final values. After the statements, Berlin 
 
 Answer file: [`exercises/04-insert-product.sql`](exercises/04-insert-product.sql)
 
-Insert `Ergonomic Footrest` with SKU `OFF-FOOT`, price 69.00, active status, creation date `2025-03-15`, and attributes `{"color":"black","adjustable":true}`. Resolve the `Office` category ID with a subquery and omit the generated product ID.
+Insert exactly one new catalog product with the following state:
+
+| Column | Required value |
+|---|---|
+| `sku` | `OFF-FOOT` |
+| `product_name` | `Ergonomic Footrest` |
+| `category_id` | ID looked up from the category named `Office` |
+| `unit_price` | `69.00` |
+| `discontinued` | `false` |
+| `attributes` | JSON object `{"color":"black","adjustable":true}` |
+| `created_at` | Date `2025-03-15` |
+
+Requirements:
+
+- List the target product columns explicitly.
+- Resolve the category ID with a scalar subquery against `categories`; do not hard-code it.
+- Omit `product_id` so PostgreSQL generates the identity value.
+- Store `attributes` as `jsonb`.
+
+Expected edge case: a category name is the supplied business key, while the product row requires its numeric foreign key.
 
 ### 5. Upsert existing inventory
 
 Answer file: [`exercises/05-upsert-inventory.sql`](exercises/05-upsert-inventory.sql)
 
-Attempt to insert 5 units of product 1 at warehouse 1 with reorder level 15 and stocking date `2025-03-20`. On the composite-key conflict, add the proposed five units to existing stock and update `last_stocked_at`; preserve the existing reorder level. The result must be one row with 50 units.
+Upsert inventory for the existing `(warehouse_id, product_id)` pair `(1, 1)`.
+
+| Proposed column | Inserted value |
+|---|---|
+| `warehouse_id` | `1` |
+| `product_id` | `1` |
+| `units_in_stock` | `5` |
+| `reorder_level` | `15` |
+| `last_stocked_at` | Date `2025-03-20` |
+
+Requirements:
+
+- Use `ON CONFLICT` with the composite key `(warehouse_id, product_id)`.
+- On conflict, add `excluded.units_in_stock` to the existing stock rather than replacing it.
+- Update `last_stocked_at` from the proposed row.
+- Preserve the existing `reorder_level` during the conflict update.
+- Leave exactly one inventory row for the key, with 50 units in stock.
+
+Expected edge case: the proposed reorder level belongs to the insert branch and must not overwrite the existing value when the conflict branch runs.
 
 ### 6. Complete a processing shipment
 
 Answer file: [`exercises/06-complete-shipment.sql`](exercises/06-complete-shipment.sql)
 
-In one `UPDATE`, change order 1022 from `processing` to `completed` and set `shipped_at` to three days after its own `order_date`. Restrict by both order ID and current status. Do not hard-code the resulting shipping date.
+Complete the shipment for order 1022 with one `UPDATE`.
+
+Required resulting state:
+
+| Column | Required value |
+|---|---|
+| `status` | `completed` |
+| `shipped_at` | The row's own `order_date + 3` days |
+
+Requirements:
+
+- Restrict the update by both `order_id = 1022` and current status `processing`.
+- Calculate the shipping date from `order_date`; do not hard-code a calendar date.
+- Change no unrelated order.
+
+Expected edge case: checking the current status prevents the statement from completing an order that has already moved to another lifecycle state.
 
 ### 7. Delete old failed payments
 
 Answer file: [`exercises/07-delete-failed-payments.sql`](exercises/07-delete-failed-payments.sql)
 
-Delete payment rows whose status is `failed` and whose `paid_at` is before `2025-01-01`. Do not delete orders. The fixture contains exactly one qualifying payment; the checker verifies the count and parent-order survival.
+Delete old failed payment events while preserving their parent orders.
+
+Deletion criteria:
+
+- `payments.status` is exactly `failed`.
+- `paid_at` is strictly earlier than `2025-01-01`.
+
+Use one `DELETE FROM payments` statement with both conditions. Do not delete from `orders`, and do not remove failed payments on or after the boundary date.
+
+The fixture contains exactly one qualifying payment. The checker verifies that one row is removed and that its related order still exists.
+
+Expected edge case: payment lifecycle and order lifecycle are separate; deleting a payment event must not mean deleting its order.
 
 ### 8. Repair Nomad Labs contact data
 
 Answer file: [`exercises/08-repair-customer-contact.sql`](exercises/08-repair-customer-contact.sql)
 
-For customer 14 only, set email to `contact@nomad.example` and country to `SE`. Do not change company name, segment, or other customers. Use the primary key as the update predicate.
+Repair two missing contact fields for Nomad Labs.
+
+| Target | Required value |
+|---|---|
+| Customer predicate | `customer_id = 14` |
+| `email` | `contact@nomad.example` |
+| `country` | `SE` |
+
+Requirements:
+
+- Use one `UPDATE` against `customers`.
+- Identify the row by its primary key.
+- Change only `email` and `country`.
+- Preserve company name, segment, referral, dates, metadata, and every other customer row.
+
+Expected edge case: using company name as the predicate is less precise than the supplied stable primary key.
 
 ### 9. Insert an order and item with a data-changing CTE
 
 Answer file: [`exercises/09-create-order-with-item.sql`](exercises/09-create-order-with-item.sql)
 
-Insert an order for customer 13, rep 4, date `2025-03-12`, status `pending`, country `CH`, no shipping date, and notes `Starter order`. Capture its generated ID with `RETURNING` in a CTE, then insert product 16, quantity 2, price 29.00, discount 0 into `order_items`. Do not hard-code an order ID.
+Create one order and its first item in a single data-changing CTE statement.
+
+New order values:
+
+| Column | Required value |
+|---|---|
+| `customer_id` | `13` |
+| `sales_rep_id` | `4` |
+| `order_date` | Date `2025-03-12` |
+| `status` | `pending` |
+| `shipping_country` | `CH` |
+| `shipped_at` | SQL `NULL` |
+| `notes` | `Starter order` |
+
+New item values:
+
+| Column | Required value |
+|---|---|
+| `order_id` | Generated ID returned by the order insert |
+| `product_id` | `16` |
+| `quantity` | `2` |
+| `unit_price` | `29.00` |
+| `discount` | `0` |
+
+Use `RETURNING order_id` inside a CTE and select that value into the item insert. Do not hard-code or predict the generated order ID.
+
+Expected edge case: the item must reference the exact identity generated by the order insert in the same statement.
 
 ### 10. Raise low Dublin reorder levels
 
 Answer file: [`exercises/10-raise-dublin-reorder-levels.sql`](exercises/10-raise-dublin-reorder-levels.sql)
 
-Use `UPDATE ... FROM warehouses` to add 2 to `reorder_level` for inventory in `Dublin Hub` only when current stock is strictly below the current threshold. Do not change stock quantities or rows already at/above threshold. Four seeded rows qualify.
+Increase reorder thresholds for low-stock inventory at Dublin Hub. One statement must update all qualifying rows as a set.
+
+Requirements:
+
+- Use `UPDATE ... FROM warehouses` and join by `warehouse_id`.
+- Restrict the warehouse by the exact name `Dublin Hub`.
+- Update only rows where `units_in_stock < reorder_level` before the change.
+- Add 2 to each row's existing `reorder_level`.
+- Do not change `units_in_stock`, other warehouses, or Dublin rows already at or above threshold.
+
+Four seeded rows qualify. The checker verifies both the changed rows and the rows that must remain unchanged.
+
+Expected edge case: equality with the reorder level is not low stock and must not trigger an update.
 
 ## Running the checks
 

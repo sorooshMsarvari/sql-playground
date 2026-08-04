@@ -116,31 +116,112 @@ Join orders to order items, filter to `status = 'completed'`, and group at the o
 
 Answer file: [`exercises/04-open-orders-partial-index.sql`](exercises/04-open-orders-partial-index.sql)
 
-Create `idx_orders_open_date` on `shop.orders` with key columns `order_date`, then `customer_id`. Include only rows whose status is `pending` or `processing` using a partial-index `WHERE` predicate. The checker inspects name, key order, and both predicate values.
+Create a partial index for date-oriented access to open orders.
+
+| Index property | Required definition |
+|---|---|
+| Name | `idx_orders_open_date` |
+| Table | `shop.orders` |
+| First key | `order_date` ascending |
+| Second key | `customer_id` ascending |
+| Included rows | Status `pending` or `processing` only |
+
+Requirements:
+
+- Use one `CREATE INDEX` statement.
+- Keep the key order exactly as listed.
+- Express the open-status condition as the partial index's `WHERE` predicate.
+- Do not include completed, cancelled, or refunded rows.
+
+Expected edge case: the predicate must contain both open status values; indexing only one produces an incomplete access path.
 
 ### 5. Case-insensitive customer-email index
 
 Answer file: [`exercises/05-customer-email-expression-index.sql`](exercises/05-customer-email-expression-index.sql)
 
-Create `idx_customers_lower_email` on the expression `lower(email)` in `shop.customers`, with a partial predicate excluding `NULL` emails. This supports lookups that normalize the query value in the same way.
+Create an expression index for case-insensitive customer-email lookup.
+
+| Index property | Required definition |
+|---|---|
+| Name | `idx_customers_lower_email` |
+| Table | `shop.customers` |
+| Indexed expression | `lower(email)` |
+| Included rows | Rows where `email IS NOT NULL` |
+
+Requirements:
+
+- Index the normalized expression, not the raw email column.
+- Use a partial `WHERE` predicate to exclude missing emails.
+- Do not add unrelated key or included columns.
+
+Expected edge case: a query can use this index only when its lookup expression is compatible with the indexed normalization.
 
 ### 6. Materialized category sales snapshot
 
 Answer file: [`exercises/06-category-sales-materialized-view.sql`](exercises/06-category-sales-materialized-view.sql)
 
-Create `shop.category_sales_snapshot` as a materialized view with every category and columns `category_id`, `category_name`, `completed_units`, and `completed_revenue`. Preserve zero-sale categories, count completed units, calculate discounted revenue, zero-fill, and round revenue to two decimals. Do not order the stored definition.
+Create `shop.category_sales_snapshot` as a materialized category-level sales report. One stored row must represent one category, including a category with no completed sales.
+
+| View column | Definition |
+|---|---|
+| `category_id` | Category identifier |
+| `category_name` | Category name |
+| `completed_units` | Sum of quantities on completed orders, or zero |
+| `completed_revenue` | Discounted completed-order revenue, zero-filled and rounded to two decimals |
+
+Requirements:
+
+- Use `CREATE MATERIALIZED VIEW`, not a normal view or table.
+- Preserve every category through the products, items, and orders relationships.
+- Apply completed status only to the two aggregates without removing zero-sale categories.
+- Use `quantity * unit_price * (1 - discount)` for revenue.
+- Do not put `ORDER BY` in the stored definition.
+
+Expected edge case: filtering completed orders as a final row predicate would remove categories that require zero-valued snapshot rows.
 
 ### 7. Add constrained product weight
 
 Answer file: [`exercises/07-add-product-weight.sql`](exercises/07-add-product-weight.sql)
 
-Alter `shop.products` to add nullable integer `weight_grams` with a check requiring any present value to be greater than zero. Do not add a default or `NOT NULL`. The checker writes a positive value and verifies a negative update is rejected.
+Alter the existing product table to support an optional positive weight.
+
+| Column property | Required definition |
+|---|---|
+| Table | `shop.products` |
+| Column name | `weight_grams` |
+| Type | `integer` |
+| Nullability | Nullable |
+| Check | A present value must be greater than zero |
+| Default | None |
+
+Use one `ALTER TABLE ... ADD COLUMN` statement. Do not add `NOT NULL` or a default value. The checker stores a positive weight and confirms that a negative update violates the check.
+
+Expected edge case: PostgreSQL check constraints permit `NULL` unless nullability is separately prohibited, which is required here.
 
 ### 8. Design customer tags
 
 Answer file: [`exercises/08-customer-tags-schema.sql`](exercises/08-customer-tags-schema.sql)
 
-Create `shop.tags` with generated integer `tag_id` primary key and unique non-`NULL` `tag_name`. Then create junction table `shop.customer_tags` with non-`NULL` cascading foreign keys to customers and tags, `assigned_at date NOT NULL DEFAULT current_date`, and composite primary key `(customer_id, tag_id)`. The checker inserts and relates a tag and inspects both cascades.
+Create a tag table and a many-to-many customer/tag junction table.
+
+`shop.tags` contract:
+
+| Column | Required definition |
+|---|---|
+| `tag_id` | Generated `integer` identity primary key |
+| `tag_name` | `text NOT NULL UNIQUE` |
+
+`shop.customer_tags` contract:
+
+| Column | Required definition |
+|---|---|
+| `customer_id` | `integer NOT NULL`, FK to `shop.customers(customer_id)`, `ON DELETE CASCADE` |
+| `tag_id` | `integer NOT NULL`, FK to `shop.tags(tag_id)`, `ON DELETE CASCADE` |
+| `assigned_at` | `date NOT NULL DEFAULT current_date` |
+
+Use the composite primary key `(customer_id, tag_id)` so the same tag cannot be assigned to one customer twice. Create `shop.tags` before the junction table because the second statement references it.
+
+Expected edge case: both foreign keys require cascading deletion; configuring only one cascade leaves an asymmetric relationship.
 
 ## Running the checks
 
